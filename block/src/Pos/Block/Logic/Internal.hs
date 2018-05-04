@@ -55,6 +55,7 @@ import           Pos.Ssc.Configuration (HasSscConfiguration)
 import           Pos.Ssc.Logic (sscApplyBlocks, sscNormalize, sscRollbackBlocks)
 import           Pos.Ssc.Mem (MonadSscMem)
 import           Pos.Ssc.Types (SscBlock)
+import           Pos.Txp.Configuration (HasTxpConfiguration)
 import           Pos.Txp.MemState (MonadTxpLocal (..))
 import           Pos.Txp.Settings (TxpBlock, TxpBlund, TxpGlobalSettings (..))
 import           Pos.Update (UpdateBlock)
@@ -147,7 +148,8 @@ normalizeMempool = do
 -- Invariant: all blocks have the same epoch.
 applyBlocksUnsafe
     :: forall ctx m .
-       ( MonadBlockApply ctx m
+       ( HasTxpConfiguration
+       , MonadBlockApply ctx m
        , HasGeneratedSecrets
        , HasGenesisData
        , HasGenesisBlockVersionData
@@ -185,7 +187,8 @@ applyBlocksUnsafe scb blunds pModifier = do
 
 applyBlocksDbUnsafeDo
     :: forall ctx m .
-       ( MonadBlockApply ctx m
+       ( HasTxpConfiguration
+       , MonadBlockApply ctx m
        , HasGeneratedSecrets
        , HasGenesisData
        , HasGenesisBlockVersionData

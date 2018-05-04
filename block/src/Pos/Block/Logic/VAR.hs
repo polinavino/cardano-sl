@@ -38,6 +38,7 @@ import qualified Pos.DB.GState.Common as GS (getTip)
 import           Pos.Delegation.Logic (dlgVerifyBlocks)
 import           Pos.Lrc.Worker (LrcModeFull, lrcSingleShot)
 import           Pos.Reporting (HasMisbehaviorMetrics)
+import           Pos.Txp.Configuration (HasTxpConfiguration)
 import           Pos.Ssc.Logic (sscVerifyBlocks)
 import           Pos.Txp.Settings (TxpGlobalSettings (TxpGlobalSettings, tgsVerifyBlocks))
 import qualified Pos.Update.DB as GS (getAdoptedBV)
@@ -68,7 +69,8 @@ import           Pos.Util.Util (HasLens (..))
 -- 4.  Return all undos.
 verifyBlocksPrefix
     :: forall ctx m.
-       ( MonadBlockVerify ctx m
+       ( HasTxpConfiguration
+       , MonadBlockVerify ctx m
        , HasGenesisBlockVersionData
        , HasGenesisData
        , HasProtocolConstants
@@ -128,7 +130,8 @@ type BlockLrcMode ctx m = (MonadBlockApply ctx m, LrcModeFull ctx m)
 -- warning that partial application has occurred.
 verifyAndApplyBlocks
     :: forall ctx m.
-       ( BlockLrcMode ctx m
+       ( HasTxpConfiguration
+       , BlockLrcMode ctx m
        , MonadMempoolNormalization ctx m
        , HasGeneratedSecrets
        , HasGenesisData
