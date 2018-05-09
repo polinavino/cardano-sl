@@ -1,6 +1,9 @@
 module Main where
 
+import Servant
+import Servant.Server
+import Network.Wai.Handler.Warp (run)
+
 import Cardano.Faucet
 
-main :: IO ()
-main = someFunc
+main = run 8081 (serve serverAPI server)
