@@ -1,9 +1,15 @@
 module Main where
 
-import Servant
-import Servant.Server
-import Network.Wai.Handler.Warp (run)
+import           Network.Wai.Handler.Warp (run)
+import           Servant
+import           Servant.Server
 
-import Cardano.Faucet
+import           Cardano.Faucet
+import           Cardano.Faucet.Types
 
-main = run 8081 (serve serverAPI server)
+main :: IO ()
+main = do
+  let c = mkConfig "test"
+  run 8081 (serve serverAPI $ s c)
+  where
+      s c = hoistServer serverAPI (runM c) server

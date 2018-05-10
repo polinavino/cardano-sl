@@ -1,8 +1,18 @@
-{-# LANGUAGE DeriveGeneric         #-}
-{-# LANGUAGE DuplicateRecordFields #-}
-{-# LANGUAGE OverloadedStrings     #-}
-{-# LANGUAGE TemplateHaskell       #-}
-module Cardano.Faucet.Types where
+{-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE DuplicateRecordFields      #-}
+{-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE OverloadedStrings          #-}
+{-# LANGUAGE TemplateHaskell            #-}
+module Cardano.Faucet.Types (
+   Config(..), mkConfig
+ , HasConfig(..)
+ , WithDrawlRequest(..), wWalletId, wAmount
+ , WithDrawlResult(..)
+ , DepositRequest(..), dWalletId, dAmount
+ , DepositResult(..)
+ , M, runM
+
+  ) where
 
 import           Control.Lens hiding ((.=))
 import           Control.Lens.TH
@@ -10,11 +20,12 @@ import           Control.Monad.Reader
 import           Data.Aeson (FromJSON (..), ToJSON (..), object, withObject, (.:), (.=))
 import           Data.Typeable (Typeable)
 import           GHC.Generics (Generic)
+import           Servant (Handler)
 
 --------------------------------------------------------------------------------
 data WithDrawlRequest = WithDrawlRequest {
-    _wWalletId :: String
-  , _wAmount   :: Double
+    _wWalletId :: String -- Pos.Wallet.Web.ClientTypes.Types.CAccountId
+  , _wAmount   :: Double -- Pos.Core.Common.Types.Coin
   } deriving (Show, Typeable, Generic)
 
 makeLenses ''WithDrawlRequest
@@ -59,4 +70,12 @@ data Config = Config {
 
 makeClassy ''Config
 
-newtype M m a = M { unM :: ReaderT Config m a }
+mkConfig :: String -> Config
+mkConfig = Config
+
+--------------------------------------------------------------------------------
+newtype M a = M { unM :: ReaderT Config Handler a }
+  deriving (Functor, Applicative, Monad, MonadReader Config, MonadIO)
+
+runM :: Config -> M a -> Handler a
+runM c = flip runReaderT c . unM

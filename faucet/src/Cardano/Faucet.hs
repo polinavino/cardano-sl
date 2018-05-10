@@ -1,26 +1,34 @@
+{-# LANGUAGE DataKinds     #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE DataKinds #-}
-module Cardano.Faucet where
+{-# OPTIONS_GHC -Wall #-}
+module Cardano.Faucet (
+    server
+  , serverAPI
+  , module Cardano.Faucet.Types
+  ) where
 
-import Servant
-import Control.Monad.IO.Class
+import Control.Lens
+import           Control.Monad.IO.Class
+import           Control.Monad.Reader
+import           Servant
 
-import Cardano.Faucet.Types
+import           Cardano.Faucet.Types
 
 type API = "withdraw" :> ReqBody '[JSON] WithDrawlRequest :> Post '[JSON] WithDrawlResult
       :<|> "deposit" :> ReqBody '[JSON] DepositRequest :> Post '[JSON] DepositResult
 
-withdraw :: MonadIO m => WithDrawlRequest -> m WithDrawlResult
+withdraw :: (MonadIO m, MonadReader c m, HasConfig c) => WithDrawlRequest -> m WithDrawlResult
 withdraw wd = do
-    liftIO $ print wd
+    url <- view walletApiURL
+    liftIO $ putStrLn $ (show wd) ++ " -- " ++ url
     return WithDrawlResult
 
-deposit :: (MonadIO m) => DepositRequest -> m DepositResult
+deposit :: (MonadIO m, MonadReader c m, HasConfig c) => DepositRequest -> m DepositResult
 deposit dr = do
     liftIO $ print dr
     return DepositResult
 
-server :: (MonadIO m) => ServerT API m
+server :: ServerT API M
 server = withdraw :<|> deposit
 
 serverAPI :: Proxy API
