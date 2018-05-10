@@ -90,7 +90,6 @@ data LauncherOptions = LO
     , loNodeLogConfig       :: !(Maybe FilePath)
     , loNodeLogPath         :: !(Maybe FilePath)
     , loWalletPath          :: !(Maybe FilePath)
-    , loFrontendOnlyMode    :: !Bool
     , loWalletArgs          :: ![Text]
     , loWalletLogging       :: !Bool
     , loWalletLogPath       :: !(Maybe FilePath)
@@ -121,7 +120,6 @@ instance FromJSON LauncherOptions where
                 , ("nodeArgs",      Array mempty)
                 , ("walletArgs",    Array mempty)
                 , ("updaterArgs",   Array mempty)
-                , ("frontendOnlyMode", Bool False)
                 ]
 
 -- | The concrete monad where everything happens
@@ -170,19 +168,13 @@ launcherArgsParser = do
 getLauncherOptions :: IO LauncherOptions
 getLauncherOptions = do
     LauncherArgs {..} <- either parseErrorHandler pure =<< execParserEither programInfo
-    daedalusDir <- takeDirectory <$> getExecutablePath
     case Sys.os of
       "mingw32" -> do
+        daedalusDir <- takeDirectory <$> getExecutablePath
         -- This is used by 'substituteEnvVars', later
         setEnv "DAEDALUS_DIR" daedalusDir
       _ -> pure ()
-    -- linux and windows use DAEDALUS_DIR for different things, but having a single var with the same meaning will help with some issues
-    setEnv "DAEDALUS_INSTALL_DIRECTORY" daedalusDir
     configPath <- maybe defaultConfigPath pure maybeConfigPath
-
-    -- [CSL-2503] remove once cardano-node is capable of finding the file on its own and daedalus no longer needs it
-    setEnv "LAUNCHER_CONFIG" configPath
-
     decoded <- Y.decodeFileEither configPath
     case decoded of
         Left err -> do
@@ -311,14 +303,7 @@ main =
                         loUpdaterPath loUpdaterArgs loUpdateWindowsRunner loUpdateArchive)
                     loReportServer
                 logNotice "Finished serverScenario"
-            (Just wpath, True) -> do
-                frontendOnlyScenario
-                    (NodeDbPath loNodeDbPath)
-                    (NodeData loNodePath realNodeArgs loNodeLogPath)
-                    (NodeData wpath loWalletArgs loWalletLogPath)
-                    (UpdaterData loUpdaterPath loUpdaterArgs loUpdateWindowsRunner loUpdateArchive)
-                    loWalletLogging
-            (Just wpath, False) -> do
+            Just wpath -> do
                 logNotice "LAUNCHER STARTED"
                 logInfo "Running in the client scenario"
                 clientScenario
@@ -470,20 +455,6 @@ clientScenario ndbp logPrefix logConf node wallet updater nodeTimeout report wal
         whenNothing_ nodeExitCode $ do
             logWarning "The node didn't die after 'terminateProcess'"
             maybeTrySIGKILL nodeHandle
-
-frontendOnlyScenario :: NodeDbPath -> NodeData -> NodeData -> UpdaterData -> Bool -> M ()
-frontendOnlyScenario ndbp node wallet updater walletLog = do
-    runUpdater ndbp updater
-    logInfo "Waiting for wallet to finish..."
-    exitCode <- runWallet walletLog wallet (ndLogPath node)
-    logInfo "Wallet has finished!"
-    let restart = frontendOnlyScenario ndbp node wallet updater walletLog
-    if exitCode == ExitFailure 20
-        then do
-            logNotice "The wallet has exited with code 20"
-            restart
-        else do
-            logWarning $ sformat ("The wallet has exited with "%shown) exitCode
 
 -- | We run the updater and delete the update file if the update was
 -- successful.
@@ -694,7 +665,7 @@ system'
     -> [Text]
     -- ^ Lines of standard input
     -> Executable
-    -- ^ executable to run
+    -- ^ node/wallet log output
     -> io ExitCode
     -- ^ Exit code
 system' phvar p sl nt = liftIO (do
