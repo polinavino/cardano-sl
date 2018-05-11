@@ -3,40 +3,54 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE TemplateHaskell            #-}
+{-# LANGUAGE ViewPatterns               #-}
+{-# OPTIONS_GHC -Wall #-}
 module Cardano.Faucet.Types (
-   Config(..), mkConfig
- , HasConfig(..)
+   FaucetConfig(..), mkFaucetConfig
+ , HasFaucetConfig(..)
+ , FaucetEnv(..), initEnv
+ , HasFaucetEnv(..)
+ , incWithDrawn
+ , decrWithDrawn
+ , setWalletBalance
  , WithDrawlRequest(..), wWalletId, wAmount
  , WithDrawlResult(..)
  , DepositRequest(..), dWalletId, dAmount
  , DepositResult(..)
  , M, runM
-
   ) where
 
 import           Control.Lens hiding ((.=))
-import           Control.Lens.TH
 import           Control.Monad.Reader
 import           Data.Aeson (FromJSON (..), ToJSON (..), object, withObject, (.:), (.=))
 import           Data.Typeable (Typeable)
 import           GHC.Generics (Generic)
 import           Servant (Handler)
+import           System.Metrics (Store, createCounter, createGauge)
+import           System.Metrics.Counter (Counter)
+import qualified System.Metrics.Counter as Counter
+import           System.Metrics.Gauge (Gauge)
+import qualified System.Metrics.Gauge as Gauge
+import           System.Remote.Monitoring.Statsd (StatsdOptions)
+
+import           Pos.Core (Coin (..))
+import           Pos.Wallet.Web.ClientTypes.Types (CAccountId (..))
 
 --------------------------------------------------------------------------------
 data WithDrawlRequest = WithDrawlRequest {
-    _wWalletId :: String -- Pos.Wallet.Web.ClientTypes.Types.CAccountId
-  , _wAmount   :: Double -- Pos.Core.Common.Types.Coin
+    _wWalletId :: CAccountId -- Pos.Wallet.Web.ClientTypes.Types.CAccountId
+  , _wAmount   :: Coin -- Pos.Core.Common.Types.Coin
   } deriving (Show, Typeable, Generic)
 
 makeLenses ''WithDrawlRequest
 
 instance FromJSON WithDrawlRequest where
   parseJSON = withObject "WithDrawlRequest" $ \v -> WithDrawlRequest
-    <$> v .: "wallet"
-    <*> v .: "amount"
+    <$> (CAccountId <$> v .: "wallet")
+    <*> (Coin <$> v .: "amount")
 
 instance ToJSON WithDrawlRequest where
-    toJSON (WithDrawlRequest w a) =
+    toJSON (WithDrawlRequest (CAccountId w) (Coin a)) =
         object ["wallet" .= w, "amount" .= a]
 
 data WithDrawlResult = WithDrawlResult
@@ -47,16 +61,16 @@ instance ToJSON WithDrawlResult
 
 --------------------------------------------------------------------------------
 data DepositRequest = DepositRequest {
-    _dWalletId :: String
-  , _dAmount   :: Double
+    _dWalletId :: CAccountId
+  , _dAmount   :: Coin
   } deriving (Show, Typeable, Generic)
 
 makeLenses ''DepositRequest
 
 instance FromJSON DepositRequest where
   parseJSON = withObject "DepositRequest" $ \v -> DepositRequest
-    <$> v .: "wallet"
-    <*> v .: "amount"
+    <$> (CAccountId <$> v .: "wallet")
+    <*> (Coin <$> v .: "amount")
 
 data DepositResult = DepositResult
   deriving (Show, Typeable, Generic)
@@ -64,18 +78,68 @@ data DepositResult = DepositResult
 instance ToJSON DepositResult
 
 --------------------------------------------------------------------------------
-data Config = Config {
-    _walletApiURL :: String
+data FaucetConfig = FaucetConfig {
+    _fcWalletApiURL :: String
+  , _fcFaucetWallet :: CAccountId
+  , _fcStatsdOpts   :: StatsdOptions
   }
 
-makeClassy ''Config
+makeClassy ''FaucetConfig
 
-mkConfig :: String -> Config
-mkConfig = Config
+mkFaucetConfig :: String -> CAccountId -> StatsdOptions -> FaucetConfig
+mkFaucetConfig = FaucetConfig
 
 --------------------------------------------------------------------------------
-newtype M a = M { unM :: ReaderT Config Handler a }
-  deriving (Functor, Applicative, Monad, MonadReader Config, MonadIO)
+data FaucetEnv = FaucetEnv {
+    _feWithdrawn     :: Counter
+  , _feNumWithdrawn  :: Counter
+  , _feWalletBalance :: Gauge
+  , _feStore         :: Store
+  , _feFaucetWallet  :: CAccountId
+  , _feWalletApiURL  :: String
+  }
 
-runM :: Config -> M a -> Handler a
+makeClassy ''FaucetEnv
+
+--------------------------------------------------------------------------------
+initEnv :: FaucetConfig -> Store -> IO FaucetEnv
+initEnv fc store = do
+    withdrawn <- createCounter "total-withdrawn" store
+    withdrawCount <- createCounter "num-withdrawals" store
+    balance <- createGauge "wallet-balance" store
+    return $ FaucetEnv withdrawn withdrawCount balance
+                       store
+                       (fc ^. fcFaucetWallet)
+                       (fc ^. fcWalletApiURL)
+
+incWithDrawn :: (MonadReader e m, HasFaucetEnv e, MonadIO m) => Coin -> m ()
+incWithDrawn (Coin (fromIntegral -> c)) = do
+  wd <- view feWithdrawn
+  wc <- view feNumWithdrawn
+  bal <- view feWalletBalance
+  liftIO $ do
+    Counter.add wd c
+    Counter.inc wc
+    Gauge.add bal c
+
+decrWithDrawn :: (MonadReader e m, HasFaucetEnv e, MonadIO m) => Coin -> m ()
+decrWithDrawn (Coin (fromIntegral -> c)) = do
+  -- wd <- view feWithdrawn
+  -- wc <- view feNumWithdrawn
+  bal <- view feWalletBalance
+  liftIO $ do
+    -- Counter.subtract wd c
+    -- Counter.inc wc
+    Gauge.subtract bal c
+
+setWalletBalance :: (MonadReader e m, HasFaucetEnv e, MonadIO m) => Coin -> m ()
+setWalletBalance (Coin (fromIntegral -> c)) = do
+  bal <- view feWalletBalance
+  liftIO $ Gauge.set bal c
+
+--------------------------------------------------------------------------------
+newtype M a = M { unM :: ReaderT FaucetEnv Handler a }
+  deriving (Functor, Applicative, Monad, MonadReader FaucetEnv, MonadIO)
+
+runM :: FaucetEnv -> M a -> Handler a
 runM c = flip runReaderT c . unM

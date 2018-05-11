@@ -22,7 +22,10 @@ library
       src
   build-depends:       base
                      , aeson
+                     , cardano-sl-core
                      , cardano-sl-wallet
+                     , ekg-core
+                     , ekg-statsd
                      , lens
                      , mtl
                      , servant
@@ -43,17 +46,22 @@ executable faucet
       server
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-                       base
-                     , cardano-sl-faucet
-                     , mtl
-                     , optparse-applicative
-                     , servant
-                     , servant-server
-                     , servant-client
-                     , wai
-                     , wai-extra
-                     , wai-cors
-                     , warp
+                    base
+                , cardano-sl-faucet
+                , cardano-sl-wallet
+                , ekg
+                , ekg-core
+                , ekg-statsd
+                , lens
+                , mtl
+                , optparse-applicative
+                , servant
+                , servant-client
+                , servant-server
+                , wai
+                , wai-cors
+                , wai-extra
+                , warp
   default-language: Haskell2010
 
 test-suite cardano-sl-faucet-test
@@ -63,6 +71,7 @@ test-suite cardano-sl-faucet-test
       test
   ghc-options: -threaded -rtsopts -with-rtsopts=-N
   build-depends:
-      base
-    , cardano-sl-faucet
+                    base
+                , cardano-sl-faucet
+                , cardano-sl-wallet
   default-language: Haskell2010

@@ -17,14 +17,15 @@ import           Cardano.Faucet.Types
 type API = "withdraw" :> ReqBody '[JSON] WithDrawlRequest :> Post '[JSON] WithDrawlResult
       :<|> "deposit" :> ReqBody '[JSON] DepositRequest :> Post '[JSON] DepositResult
 
-withdraw :: (MonadIO m, MonadReader c m, HasConfig c) => WithDrawlRequest -> m WithDrawlResult
+withdraw :: (MonadIO m, MonadReader c m, HasFaucetEnv c) => WithDrawlRequest -> m WithDrawlResult
 withdraw wd = do
-    url <- view walletApiURL
-    liftIO $ putStrLn $ (show wd) ++ " -- " ++ url
+    incWithDrawn (wd ^. wAmount)
+    liftIO $ print $ wd
     return WithDrawlResult
 
-deposit :: (MonadIO m, MonadReader c m, HasConfig c) => DepositRequest -> m DepositResult
+deposit :: (MonadIO m, MonadReader c m, HasFaucetEnv c) => DepositRequest -> m DepositResult
 deposit dr = do
+    decrWithDrawn (dr ^. dAmount)
     liftIO $ print dr
     return DepositResult
 

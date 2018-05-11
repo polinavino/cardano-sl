@@ -1,15 +1,23 @@
+{-# LANGUAGE OverloadedStrings #-}
+{-# OPTIONS_GHC -Wall #-}
+
 module Main where
 
+import Control.Lens
 import           Network.Wai.Handler.Warp (run)
 import           Servant
-import           Servant.Server
 
+import           Pos.Wallet.Web.ClientTypes.Types (CAccountId (..))
 import           Cardano.Faucet
-import           Cardano.Faucet.Types
+import System.Remote.Monitoring (forkServer, serverMetricStore)
+import           System.Remote.Monitoring.Statsd (defaultStatsdOptions, forkStatsd)
 
 main :: IO ()
 main = do
-  let c = mkConfig "test"
-  run 8081 (serve serverAPI $ s c)
+  ekg <- forkServer "localhost" 8000
+  let c = mkFaucetConfig "wallet-url" (CAccountId "wallet-id") defaultStatsdOptions
+  fEnv <- initEnv c (serverMetricStore ekg)
+  _statsd <- forkStatsd (c ^. fcStatsdOpts) (fEnv ^. feStore)
+  run 8081 (serve serverAPI $ s fEnv)
   where
-      s c = hoistServer serverAPI (runM c) server
+      s env = hoistServer serverAPI (runM env) server
