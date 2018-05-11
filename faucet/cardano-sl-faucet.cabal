@@ -46,8 +46,10 @@ executable faucet
                        base
                      , cardano-sl-faucet
                      , mtl
+                     , optparse-applicative
                      , servant
                      , servant-server
+                     , servant-client
                      , wai
                      , wai-extra
                      , wai-cors
