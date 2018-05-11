@@ -71,7 +71,7 @@ genesisWallet wc = do
     maybe
         (fail "Genesis wallet is missing; did you import it prior to executing the test-suite?")
         return
-        (find ((lockedWallet ==) . walId) allWallets)
+        (find ((lockedWallet /=) . walId) allWallets)
 
 -- Hard code the genesis wallet that's asset locked
 genesisAssetLockedWallet :: WalletClient IO -> IO Wallet

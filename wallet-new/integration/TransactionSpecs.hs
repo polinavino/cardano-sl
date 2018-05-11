@@ -32,12 +32,12 @@ transactionSpecs wRef wc = do
                         }
                     , pmtDestinations = pure PaymentDistribution
                         { pdAddress = addrId toAddr
-                        , pdAmount = halfOf (accAmount fromAcct)
+                        , pdAmount = tenthOf (accAmount fromAcct)
                         }
                     , pmtGroupingPolicy = Nothing
                     , pmtSpendingPassword = Nothing
                     }
-                halfOf (V1 c) = V1 (Core.mkCoin (Core.getCoin c `div` 2))
+                tenthOf (V1 c) = V1 (Core.mkCoin (Core.getCoin c `div` 10))
 
             etxn <- postTransaction wc payment
 
@@ -62,12 +62,12 @@ transactionSpecs wRef wc = do
                         }
                     , pmtDestinations = pure PaymentDistribution
                         { pdAddress = addrId toAddr
-                        , pdAmount = halfOf (accAmount fromAcct)
+                        , pdAmount = tenthOf (accAmount fromAcct)
                         }
                     , pmtGroupingPolicy = Nothing
                     , pmtSpendingPassword = Nothing
                     }
-                halfOf (V1 c) = V1 (Core.mkCoin (Core.getCoin c `div` 2))
+                tenthOf (V1 c) = V1 (Core.mkCoin (Core.getCoin c `div` 10))
 
             etxn <- postTransaction wc payment
 
@@ -92,12 +92,12 @@ transactionSpecs wRef wc = do
                         }
                     , pmtDestinations = pure PaymentDistribution
                         { pdAddress = addrId toAddr
-                        , pdAmount = halfOf (accAmount fromAcct)
+                        , pdAmount = tenthOf (accAmount fromAcct)
                         }
                     , pmtGroupingPolicy = Nothing
                     , pmtSpendingPassword = Nothing
                     }
-                halfOf (V1 c) = V1 (Core.mkCoin (Core.getCoin c `div` 2))
+                tenthOf (V1 c) = V1 (Core.mkCoin (Core.getCoin c `div` 10))
 
             etxn <- postTransaction wc payment
             void $ etxn `shouldPrism` _Left
