@@ -14,7 +14,7 @@ import           System.Remote.Monitoring.Statsd (defaultStatsdOptions, forkStat
 
 main :: IO ()
 main = do
-  ekg <- forkServer "localhost" 8000
+  ekg <- forkServer "localhost" 8001
   let c = mkFaucetConfig "wallet-url" (CAccountId "wallet-id") defaultStatsdOptions
   fEnv <- initEnv c (serverMetricStore ekg)
   _statsd <- forkStatsd (c ^. fcStatsdOpts) (fEnv ^. feStore)
