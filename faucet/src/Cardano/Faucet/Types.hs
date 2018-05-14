@@ -34,7 +34,7 @@ import qualified System.Metrics.Gauge as Gauge
 import           System.Remote.Monitoring.Statsd (StatsdOptions)
 
 import           Pos.Core (Coin (..))
-import           Pos.Wallet.Web.ClientTypes.Types (CAccountId (..))
+import           Pos.Wallet.Web.ClientTypes.Types (Addr (..), CAccountId (..), CId (..))
 
 --------------------------------------------------------------------------------
 data WithDrawlRequest = WithDrawlRequest {

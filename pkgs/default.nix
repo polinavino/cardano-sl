@@ -783,7 +783,7 @@ let
            homepage = "http://github.com/ryantm/hdbc-mysql";
            description = "MySQL driver for HDBC";
            license = "LGPL";
-         }) {inherit (pkgs) mysqlclient; inherit (pkgs) openssl; 
+         }) {inherit (pkgs) mysqlclient; inherit (pkgs) openssl;
 inherit (pkgs) zlib;};
       "HDBC-session" = callPackage
         ({ mkDerivation, base, HDBC, stdenv }:
@@ -2028,8 +2028,8 @@ inherit (pkgs) zlib;};
            description = "A binding to part of the Win32 library";
            license = stdenv.lib.licenses.bsd3;
            platforms = stdenv.lib.platforms.none;
-         }) {inherit (pkgs) advapi32; inherit (pkgs) gdi32; 
-inherit (pkgs) shell32; inherit (pkgs) shfolder; 
+         }) {inherit (pkgs) advapi32; inherit (pkgs) gdi32;
+inherit (pkgs) shell32; inherit (pkgs) shfolder;
 inherit (pkgs) user32; inherit (pkgs) winmm;};
       "Win32-extras" = callPackage
         ({ mkDerivation, base, imm32, msimg32, stdenv, Win32 }:
@@ -2099,7 +2099,7 @@ inherit (pkgs) user32; inherit (pkgs) winmm;};
            homepage = "https://github.com/xmonad/X11";
            description = "A binding to the X11 graphics library";
            license = stdenv.lib.licenses.bsd3;
-         }) {inherit (pkgs.xorg) libXext; inherit (pkgs.xorg) libXinerama; 
+         }) {inherit (pkgs.xorg) libXext; inherit (pkgs.xorg) libXinerama;
 inherit (pkgs.xorg) libXrender;};
       "X11-xft" = callPackage
         ({ mkDerivation, base, libXft, stdenv, utf8-string, X11 }:
@@ -2267,7 +2267,7 @@ inherit (pkgs.xorg) libXrender;};
            version = "0.14.2";
            src = fetchgit {
              url = "https://github.com/serokell/acid-state.git";
-             sha256 = "19q7lxqwk3s6v6n6ck7xz0flff8cpk2pchrgz4hssmv3w8yd4bbr";
+             sha256 = "15kizba0bnhms7ii838v2lg9z4ghrcrws9zdvrr6mxwknl6rcrd3";
              rev = "9a8af2440d655e14b802639b0b363be2ffb5a32a";
            };
            libraryHaskellDepends = [
@@ -5511,7 +5511,7 @@ inherit (pkgs.xorg) libXrender;};
            doCheck = false;
            description = "Low-level bindings to GLFW OpenGL library";
            license = stdenv.lib.licenses.bsd3;
-         }) {inherit (pkgs.xorg) libXext; inherit (pkgs.xorg) libXfixes; 
+         }) {inherit (pkgs.xorg) libXext; inherit (pkgs.xorg) libXfixes;
 inherit (pkgs) mesa;};
       "bindings-libzip" = callPackage
         ({ mkDerivation, base, bindings-DSL, libzip, stdenv }:
@@ -6883,7 +6883,7 @@ inherit (pkgs) mesa;};
            version = "1.0.0";
            src = fetchgit {
              url = "https://github.com/input-output-hk/cardano-crypto";
-             sha256 = "05i1z01fzg0la4hk2ff0l89sk0a5ada81w60kwj9i8ix74jchp94";
+             sha256 = "033f9ww9qj25zwinxxdf1iimwz6nyszqkhs3iikf5brva99ww004";
              rev = "287cc575fafe86af9d24af9d012c47f9d3f04da0";
            };
            libraryHaskellDepends = [
@@ -6909,7 +6909,7 @@ inherit (pkgs) mesa;};
            version = "0.4.10";
            src = fetchgit {
              url = "https://github.com/input-output-hk/cardano-report-server.git";
-             sha256 = "0chhbnrl68aqjfhkqvq53v572zsg52mj8pjxl3n7nnbc006cqs49";
+             sha256 = "1jnmsmscgqv60b6xwjim4hym3kfwhdz3cs1vwr557qgjny4s9qjq";
              rev = "81eea7361a75923f9402fcb7840fb36722dbf88e";
            };
            isLibrary = true;
@@ -7333,6 +7333,34 @@ inherit (pkgs) mesa;};
            benchmarkToolDepends = [ cpphs ];
            doHaddock = false;
            description = "Cardano explorer";
+           license = stdenv.lib.licenses.mit;
+         }) {};
+      "cardano-sl-faucet" = callPackage
+        ({ mkDerivation, aeson, base, cardano-sl-core, cardano-sl-wallet
+         , cardano-sl-wallet-new, ekg, ekg-core, ekg-statsd, lens, mtl
+         , optparse-applicative, servant, servant-client
+         , servant-client-core, servant-server, servant-swagger
+         , servant-swagger-ui, stdenv, swagger2, wai, wai-cors, wai-extra
+         , warp
+         }:
+         mkDerivation {
+           pname = "cardano-sl-faucet";
+           version = "0.1.0.0";
+           src = ./.;
+           isLibrary = true;
+           isExecutable = true;
+           libraryHaskellDepends = [
+             aeson base cardano-sl-core cardano-sl-wallet cardano-sl-wallet-new
+             ekg-core ekg-statsd lens mtl servant servant-client
+             servant-client-core servant-server servant-swagger
+             servant-swagger-ui swagger2
+           ];
+           executableHaskellDepends = [
+             base cardano-sl-wallet cardano-sl-wallet-new ekg ekg-core
+             ekg-statsd lens mtl optparse-applicative servant servant-client
+             servant-server wai wai-cors wai-extra warp
+           ];
+           testHaskellDepends = [ base cardano-sl-wallet ];
            license = stdenv.lib.licenses.mit;
          }) {};
       "cardano-sl-generator" = callPackage
@@ -8006,7 +8034,7 @@ inherit (pkgs) mesa;};
            version = "0.2.0.0";
            src = fetchgit {
              url = "https://github.com/well-typed/cborg";
-             sha256 = "1w06annk6nm01brd60hzl15143cvjvsaam9lhwzpmppyvgb0cdyz";
+             sha256 = "0qi2brq5nf3p2vcw97yc25qw92w3xr6jhcsrhay2059lkx9qp8r8";
              rev = "3d274c14ca3077c3a081ba7ad57c5182da65c8c1";
            };
            postUnpack = "sourceRoot+=/cborg; echo source root reset to $sourceRoot";
@@ -10062,7 +10090,7 @@ inherit (pkgs) mesa;};
            version = "0.24";
            src = fetchgit {
              url = "https://github.com/haskell-crypto/cryptonite";
-             sha256 = "1fd9swq1akngngg9ygf15yzj38cwgbk50fq53hckfjrgkwg34v7x";
+             sha256 = "18a3cwr187ykliaan5z04ff0dw8ib35rk212fs7pn0l2sxyds9g2";
              rev = "41d610fb18e2924d7aa704c37798e1c197557f3e";
            };
            libraryHaskellDepends = [
@@ -11777,7 +11805,7 @@ inherit (pkgs) mesa;};
            version = "3.0.0";
            src = fetchgit {
              url = "https://github.com/kazu-yamamoto/dns.git";
-             sha256 = "0fx57y06c6dsypbdf4820nlzfpvzb0xf0c9cjpy621acxms3wwmc";
+             sha256 = "13a61p1s47c8iwx3hb9z5zza8xgc3yp2181hd0wz102c0kjimvxg";
              rev = "b106470f0a93672af22cbc7ed6564b53c0f249ed";
            };
            libraryHaskellDepends = [
@@ -12140,7 +12168,7 @@ inherit (pkgs) mesa;};
            version = "0.0.5.0";
            src = fetchgit {
              url = "https://github.com/thoughtpolice/hs-ed25519";
-             sha256 = "0fah4vkmqdkjsdh3s3x27yfaif2fbdg6049xvp54b5mh50yvxkfq";
+             sha256 = "097mxmq1vghzxwxlfmga9wqqzksjcnrfp06g2ah6wkb1d8szimvf";
              rev = "da4247b5b3420120e20451e6a252e2a2ca15b43c";
            };
            libraryHaskellDepends = [ base bytestring ghc-prim ];
@@ -12554,7 +12582,7 @@ inherit (pkgs) mesa;};
            version = "1.2.15";
            src = fetchgit {
              url = "https://github.com/serokell/engine.io.git";
-             sha256 = "0j2rxbw5g88ivmjzhmhnxk4cgkxdw97i2qlzw47gzyv56ciqfdny";
+             sha256 = "0gzylq7zb675m6ap6grgfbhr970f9z0hlp3l7fkn0p3xfxhqqpnd";
              rev = "a594e402fd450f11ad60d09ddbd93db500000632";
            };
            postUnpack = "sourceRoot+=/engine-io; echo source root reset to $sourceRoot";
@@ -12580,7 +12608,7 @@ inherit (pkgs) mesa;};
            version = "1.0.6";
            src = fetchgit {
              url = "https://github.com/serokell/engine.io.git";
-             sha256 = "0j2rxbw5g88ivmjzhmhnxk4cgkxdw97i2qlzw47gzyv56ciqfdny";
+             sha256 = "0gzylq7zb675m6ap6grgfbhr970f9z0hlp3l7fkn0p3xfxhqqpnd";
              rev = "a594e402fd450f11ad60d09ddbd93db500000632";
            };
            postUnpack = "sourceRoot+=/engine-io-wai; echo source root reset to $sourceRoot";
@@ -14312,7 +14340,7 @@ inherit (pkgs) mesa;};
            homepage = "https://github.com/chrisdone/freenect";
            description = "Interface to the Kinect device";
            license = stdenv.lib.licenses.bsd3;
-         }) {inherit (pkgs) freenect; inherit (pkgs) freenect_sync; 
+         }) {inherit (pkgs) freenect; inherit (pkgs) freenect_sync;
 inherit (pkgs) libfreenect;};
       "freer" = callPackage
         ({ mkDerivation, base, stdenv }:
@@ -14549,8 +14577,8 @@ inherit (pkgs) libfreenect;};
            doCheck = false;
            description = "A Haskell binding to a subset of the GD graphics library";
            license = stdenv.lib.licenses.bsd3;
-         }) {inherit (pkgs) expat; inherit (pkgs) fontconfig; 
-inherit (pkgs) freetype; inherit (pkgs) gd; 
+         }) {inherit (pkgs) expat; inherit (pkgs) fontconfig;
+inherit (pkgs) freetype; inherit (pkgs) gd;
 inherit (pkgs) libjpeg; inherit (pkgs) libpng; inherit (pkgs) zlib;};
       "general-games" = callPackage
         ({ mkDerivation, base, monad-loops, MonadRandom, random
@@ -15421,9 +15449,9 @@ inherit (pkgs) libjpeg; inherit (pkgs) libpng; inherit (pkgs) zlib;};
            description = "manage files with git, without checking their contents into git";
            license = stdenv.lib.licenses.gpl3;
            platforms = [ "i686-linux" "x86_64-linux" ];
-         }) {inherit (pkgs) bup; inherit (pkgs) curl; inherit (pkgs) git; 
-inherit (pkgs) gnupg; inherit (pkgs) lsof; inherit (pkgs) openssh; 
-inherit (pkgs) perl; inherit (pkgs) rsync; inherit (pkgs) wget; 
+         }) {inherit (pkgs) bup; inherit (pkgs) curl; inherit (pkgs) git;
+inherit (pkgs) gnupg; inherit (pkgs) lsof; inherit (pkgs) openssh;
+inherit (pkgs) perl; inherit (pkgs) rsync; inherit (pkgs) wget;
 inherit (pkgs) which;};
       "github" = callPackage
         ({ mkDerivation, aeson, aeson-compat, base, base-compat
@@ -23341,7 +23369,7 @@ inherit (pkgs) which;};
            version = "1.1.0.1";
            src = fetchgit {
              url = "https://github.com/serokell/kademlia.git";
-             sha256 = "1k1wp9dwhzzqfivxc28vhxfqplnyh916crr7bhsiv829d6qifhw1";
+             sha256 = "00vkanwr4mk82lffcngql4r7hmkk64fjrl58a78pl80iiypyvjyw";
              rev = "7120bb4d28e708acd52dfd61d3dca7914fac7d7f";
            };
            isLibrary = true;
@@ -24888,7 +24916,7 @@ inherit (pkgs) which;};
            version = "1.8.0";
            src = fetchgit {
              url = "https://github.com/input-output-hk/log-warper.git";
-             sha256 = "12jbqj0b0jglr5j5hmn1sc9yrfywd7baf94z3nmklfki5y5fjprg";
+             sha256 = "11ax1xqnfb0k1f8pxvbj1666r6mws29fmvfykp6q8rf2xjwilmw5";
              rev = "b8c390357b27e7ae3b9b0c5309bf9d0bbbf09852";
            };
            libraryHaskellDepends = [
@@ -27638,7 +27666,7 @@ inherit (pkgs) which;};
            version = "0.5.2";
            src = fetchgit {
              url = "https://github.com/serokell/network-transport";
-             sha256 = "0lqa26l2ikpq6a4s7qm9b2favx59w82i0wngakhfyax66fpixp8q";
+             sha256 = "0qr3z60zdnwzcmh9d9wcgfpjvcvrv3i6g7lz2i6p05h1ixia43bq";
              rev = "018a50b9042c2115c3ec9c9fd5ca5f28737dd29c";
            };
            libraryHaskellDepends = [
@@ -27674,7 +27702,7 @@ inherit (pkgs) which;};
            version = "0.5.1";
            src = fetchgit {
              url = "https://github.com/avieth/network-transport-inmemory";
-             sha256 = "0ak64rks3lk3kk5wyndrrk2swmd84h9diribzix305xwz1jhjj9w";
+             sha256 = "00nk1c16pcsfpm02br67cs6iwrc2zx4zxhpgidk39b2vxr49znl6";
              rev = "5d8ff2b07b9df35cf61329a3d975e2c8cf95c12a";
            };
            libraryHaskellDepends = [
@@ -27695,7 +27723,7 @@ inherit (pkgs) which;};
            version = "0.6.0";
            src = fetchgit {
              url = "https://github.com/serokell/network-transport-tcp";
-             sha256 = "1cim8867kf36kv6ax9jx5shlqd7hhs1i4jf101x4pk3wriwbxsds";
+             sha256 = "1d1wbc38iy7616kwrndhqrsbw1skyvzj5952mdgl0jklfjdd3wzy";
              rev = "3d56652123bd296dc759cd31947eb2a17924e68a";
            };
            libraryHaskellDepends = [
@@ -30203,7 +30231,7 @@ inherit (pkgs) which;};
            version = "0.1.0.0";
            src = fetchgit {
              url = "https://github.com/input-output-hk/plutus-prototype";
-             sha256 = "1b0c9d8pr932fvaamyv53fa2jpfwm249imc8fxfybn71yz8p96ai";
+             sha256 = "01pp7jhxpkrgiaqc99bzdgi1y29mpwfmcf0a2hhqhbisznp4y2p8";
              rev = "d4aa461fc69fc6957aab46b41a670c2144aefb77";
            };
            enableSeparateDataOutput = true;
@@ -33168,7 +33196,7 @@ inherit (pkgs) which;};
            version = "0.0.0";
            src = fetchgit {
              url = "https://github.com/input-output-hk/rocksdb-haskell-ng.git";
-             sha256 = "02jvri8ik8jgrxwa6qmh3xcwqvm4s27iv3sxpjpny79nlhlxvfzp";
+             sha256 = "0d1jf2mgxqszmw82i7rywqdgz7hra339hd2yyr5x9gs4i8v47mk5";
              rev = "49f501a082d745f3b880677220a29cafaa181452";
            };
            libraryHaskellDepends = [ base bytestring directory ];
@@ -34317,7 +34345,7 @@ inherit (pkgs) which;};
            version = "0.11";
            src = fetchgit {
              url = "https://github.com/serokell/servant-multipart.git";
-             sha256 = "042lw09j79qlax8ymwzphc29q8sx1vzlbyf42hmwy2pg5fgmw0qv";
+             sha256 = "0x0ylzlslaszh07zv9p9niczrf6fk3rhw8axsdpxgc5lirriyq7a";
              rev = "e7de56b5f7c39f8dc473f1bbaf534bb7affc3cf4";
            };
            isLibrary = true;
@@ -34407,7 +34435,7 @@ inherit (pkgs) which;};
            version = "0.12";
            src = fetchgit {
              url = "https://github.com/serokell/servant.git";
-             sha256 = "1irn9kvyyv2xxfm5rg92f3sw4x5c0drg44g74ccpsw83dh1wl169";
+             sha256 = "078rmlmxchgq78kgkfjkd40d0awcxlnnm9669fsqzanwm545f541";
              rev = "5db013cc36894afdff9e748dbc1c05947c54df3d";
            };
            postUnpack = "sourceRoot+=/servant-server; echo source root reset to $sourceRoot";
@@ -35501,7 +35529,7 @@ inherit (pkgs) which;};
            version = "1.3.7";
            src = fetchgit {
              url = "https://github.com/serokell/engine.io.git";
-             sha256 = "0j2rxbw5g88ivmjzhmhnxk4cgkxdw97i2qlzw47gzyv56ciqfdny";
+             sha256 = "0gzylq7zb675m6ap6grgfbhr970f9z0hlp3l7fkn0p3xfxhqqpnd";
              rev = "a594e402fd450f11ad60d09ddbd93db500000632";
            };
            postUnpack = "sourceRoot+=/socket-io; echo source root reset to $sourceRoot";
@@ -44462,4 +44490,3 @@ in compiler.override {
   configurationCommon = { ... }: self: super: {};
   compilerConfig = self: super: {};
 }
-

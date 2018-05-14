@@ -13,6 +13,8 @@ import           Control.Monad.Reader
 import           Servant
 
 import           Cardano.Faucet.Types
+import           Client.Cardano.Wallet.Web.Api     (newPayment)
+import           Client.Cardano.Wallet.Web.Run     (runEndpointClient)
 
 type API = "withdraw" :> ReqBody '[JSON] WithDrawlRequest :> Post '[JSON] WithDrawlResult
       :<|> "deposit" :> ReqBody '[JSON] DepositRequest :> Post '[JSON] DepositResult

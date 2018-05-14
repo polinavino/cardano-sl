@@ -24,6 +24,7 @@ library
                      , aeson
                      , cardano-sl-core
                      , cardano-sl-wallet
+                     , cardano-sl-wallet-new
                      , ekg-core
                      , ekg-statsd
                      , lens
@@ -49,6 +50,7 @@ executable faucet
                     base
                 , cardano-sl-faucet
                 , cardano-sl-wallet
+                , cardano-sl-wallet-new
                 , ekg
                 , ekg-core
                 , ekg-statsd
