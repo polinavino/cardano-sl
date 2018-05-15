@@ -26,6 +26,7 @@ import           Data.Aeson (FromJSON (..), ToJSON (..), object, withObject, (.:
 import           Data.Typeable (Typeable)
 import           GHC.Generics (Generic)
 import           Servant (Handler)
+import           Servant.Client.Core (BaseUrl (..), Scheme (..))
 import           System.Metrics (Store, createCounter, createGauge)
 import           System.Metrics.Counter (Counter)
 import qualified System.Metrics.Counter as Counter
@@ -33,6 +34,8 @@ import           System.Metrics.Gauge (Gauge)
 import qualified System.Metrics.Gauge as Gauge
 import           System.Remote.Monitoring.Statsd (StatsdOptions)
 
+import           Cardano.Wallet.Client (WalletClient)
+import           Cardano.Wallet.Client.Http (defaultManagerSettings, mkHttpClient, newManager)
 import           Pos.Core (Coin (..))
 import           Pos.Wallet.Web.ClientTypes.Types (Addr (..), CAccountId (..), CId (..))
 
@@ -79,14 +82,15 @@ instance ToJSON DepositResult
 
 --------------------------------------------------------------------------------
 data FaucetConfig = FaucetConfig {
-    _fcWalletApiURL :: String
-  , _fcFaucetWallet :: CAccountId
-  , _fcStatsdOpts   :: StatsdOptions
+    _fcWalletApiHost :: String
+  , _fcWalletApiPort :: Int
+  , _fcFaucetWallet  :: CAccountId
+  , _fcStatsdOpts    :: StatsdOptions
   }
 
 makeClassy ''FaucetConfig
 
-mkFaucetConfig :: String -> CAccountId -> StatsdOptions -> FaucetConfig
+mkFaucetConfig :: String -> Int -> CAccountId -> StatsdOptions -> FaucetConfig
 mkFaucetConfig = FaucetConfig
 
 --------------------------------------------------------------------------------
@@ -96,7 +100,9 @@ data FaucetEnv = FaucetEnv {
   , _feWalletBalance :: Gauge
   , _feStore         :: Store
   , _feFaucetWallet  :: CAccountId
-  , _feWalletApiURL  :: String
+  , _feWalletApiHost :: String
+  , _feWalletApiPort :: Int
+  , _feWalletClient  :: WalletClient IO
   }
 
 makeClassy ''FaucetEnv
@@ -107,10 +113,14 @@ initEnv fc store = do
     withdrawn <- createCounter "total-withdrawn" store
     withdrawCount <- createCounter "num-withdrawals" store
     balance <- createGauge "wallet-balance" store
+    manager <- newManager defaultManagerSettings
+    let url = BaseUrl Http (fc ^. fcWalletApiHost) (fc ^. fcWalletApiPort) ""
     return $ FaucetEnv withdrawn withdrawCount balance
                        store
                        (fc ^. fcFaucetWallet)
-                       (fc ^. fcWalletApiURL)
+                       (fc ^. fcWalletApiHost)
+                       (fc ^. fcWalletApiPort)
+                       (mkHttpClient url manager)
 
 incWithDrawn :: (MonadReader e m, HasFaucetEnv e, MonadIO m) => Coin -> m ()
 incWithDrawn (Coin (fromIntegral -> c)) = do

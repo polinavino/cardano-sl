@@ -27,6 +27,7 @@ library
                      , cardano-sl-wallet-new
                      , ekg-core
                      , ekg-statsd
+                     , http-client
                      , lens
                      , mtl
                      , servant
