@@ -1,6 +1,6 @@
 {-# OPTIONS_GHC -fno-warn-orphans #-}
-{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE FlexibleInstances          #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE StandaloneDeriving         #-}
@@ -23,9 +23,11 @@ import           Pos.Wallet.Web.ClientTypes (AccountId (..), Addr, CAccountMeta 
 import           Pos.Wallet.Web.ClientTypes.Functions (addressToCId)
 import           Pos.Wallet.Web.State.Storage
 import           Test.Hspec (Spec, describe, it)
-import           Test.Pos.Configuration (withDefConfigurations)
 import           Test.QuickCheck
 import           Universum
+
+import           Test.Pos.Configuration (withDefConfigurations)
+import           Test.Pos.Txp.Arbitrary ()
 
 --------------------------------------------------------------------------------
 -- Reverse migrations
