@@ -7346,7 +7346,7 @@ inherit (pkgs) mesa;};
          mkDerivation {
            pname = "cardano-sl-faucet";
            version = "0.1.0.0";
-           src = ./.;
+           src = ./../faucet;
            isLibrary = true;
            isExecutable = true;
            libraryHaskellDepends = [
@@ -7361,6 +7361,7 @@ inherit (pkgs) mesa;};
              servant-server wai wai-cors wai-extra warp
            ];
            testHaskellDepends = [ base cardano-sl-wallet ];
+           doHaddock = false;
            license = stdenv.lib.licenses.mit;
          }) {};
       "cardano-sl-generator" = callPackage
