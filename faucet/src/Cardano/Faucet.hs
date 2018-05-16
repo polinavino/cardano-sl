@@ -1,5 +1,7 @@
-{-# LANGUAGE DataKinds     #-}
-{-# LANGUAGE TypeOperators #-}
+{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# OPTIONS_GHC -Wall #-}
 module Cardano.Faucet (
     server
@@ -7,10 +9,13 @@ module Cardano.Faucet (
   , module Cardano.Faucet.Types
   ) where
 
-import Control.Lens
+import           Control.Lens
+import Data.Monoid ((<>))
+import Data.Text.Lens
 import           Control.Monad.IO.Class
-import           Control.Monad.Reader
 import           Servant
+import           System.Wlog (HasLoggerName, LoggerName (..), WithLogger, logError, logInfo,
+                              withSublogger)
 
 import           Cardano.Faucet.Types
 -- import           Client.Cardano.Wallet.Web.Run     (runEndpointClient)
@@ -18,16 +23,16 @@ import           Cardano.Faucet.Types
 type API = "withdraw" :> ReqBody '[JSON] WithDrawlRequest :> Post '[JSON] WithDrawlResult
       :<|> "deposit" :> ReqBody '[JSON] DepositRequest :> Post '[JSON] DepositResult
 
-withdraw :: (MonadIO m, MonadReader c m, HasFaucetEnv c) => WithDrawlRequest -> m WithDrawlResult
-withdraw wd = do
+withdraw :: (MonadFaucet c m) => WithDrawlRequest -> m WithDrawlResult
+withdraw wd = withSublogger (LoggerName "withdraw") $ do
     incWithDrawn (wd ^. wAmount)
-    liftIO $ print $ wd
+    logInfo ((wd ^. to show . packed) <> " withdrawn")
     return WithDrawlResult
 
-deposit :: (MonadIO m, MonadReader c m, HasFaucetEnv c) => DepositRequest -> m DepositResult
-deposit dr = do
+deposit :: (MonadFaucet c m) => DepositRequest -> m DepositResult
+deposit dr = withSublogger (LoggerName "deposit") $ do
     decrWithDrawn (dr ^. dAmount)
-    liftIO $ print dr
+    logInfo ((dr ^. to show . packed) <> " deposited")
     return DepositResult
 
 server :: ServerT API M

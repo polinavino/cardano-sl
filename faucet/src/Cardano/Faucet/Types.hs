@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric              #-}
+{-# LANGUAGE ConstraintKinds #-}
 {-# LANGUAGE DuplicateRecordFields      #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE OverloadedStrings          #-}
@@ -18,14 +19,16 @@ module Cardano.Faucet.Types (
  , DepositRequest(..), dWalletId, dAmount
  , DepositResult(..)
  , M, runM
+ , MonadFaucet
   ) where
 
 import           Control.Lens hiding ((.=))
+import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Data.Aeson (FromJSON (..), ToJSON (..), object, withObject, (.:), (.=))
 import           Data.Typeable (Typeable)
 import           GHC.Generics (Generic)
-import           Servant (Handler)
+import           Servant (ServantErr)
 import           Servant.Client.Core (BaseUrl (..), Scheme (..))
 import           System.Metrics (Store, createCounter, createGauge)
 import           System.Metrics.Counter (Counter)
@@ -33,8 +36,10 @@ import qualified System.Metrics.Counter as Counter
 import           System.Metrics.Gauge (Gauge)
 import qualified System.Metrics.Gauge as Gauge
 import           System.Remote.Monitoring.Statsd (StatsdOptions)
+import           System.Wlog (CanLog, WithLogger, HasLoggerName, LoggerName (..), LoggerNameBox (..),
+                              launchFromFile)
 
-import           Cardano.Wallet.API.V1.Types (PaymentSource(..))
+import           Cardano.Wallet.API.V1.Types (PaymentSource (..))
 import           Cardano.Wallet.Client (WalletClient)
 import           Cardano.Wallet.Client.Http (defaultManagerSettings, mkHttpClient, newManager)
 import           Pos.Core (Coin (..))
@@ -83,15 +88,16 @@ instance ToJSON DepositResult
 
 --------------------------------------------------------------------------------
 data FaucetConfig = FaucetConfig {
-    _fcWalletApiHost :: String
-  , _fcWalletApiPort :: Int
-  , _fcFaucetPaymentSource  :: PaymentSource
-  , _fcStatsdOpts    :: StatsdOptions
+    _fcWalletApiHost       :: String
+  , _fcWalletApiPort       :: Int
+  , _fcFaucetPaymentSource :: PaymentSource
+  , _fcStatsdOpts          :: StatsdOptions
+  , _fcLoggerConfigFile    :: FilePath
   }
 
 makeClassy ''FaucetConfig
 
-mkFaucetConfig :: String -> Int -> PaymentSource -> StatsdOptions -> FaucetConfig
+mkFaucetConfig :: String -> Int -> PaymentSource -> StatsdOptions -> String -> FaucetConfig
 mkFaucetConfig = FaucetConfig
 
 --------------------------------------------------------------------------------
@@ -145,8 +151,13 @@ setWalletBalance (Coin (fromIntegral -> c)) = do
   liftIO $ Gauge.set bal c
 
 --------------------------------------------------------------------------------
-newtype M a = M { unM :: ReaderT FaucetEnv Handler a }
-  deriving (Functor, Applicative, Monad, MonadReader FaucetEnv, MonadIO)
+newtype M a = M { unM :: ReaderT FaucetEnv (ExceptT ServantErr (LoggerNameBox IO)) a }
+  deriving (Functor, Applicative, Monad, MonadReader FaucetEnv, CanLog, HasLoggerName, MonadIO)
 
-runM :: FaucetEnv -> M a -> Handler a
-runM c = flip runReaderT c . unM
+runM :: FaucetEnv -> M a -> IO (Either ServantErr a)
+runM c = launchFromFile (c ^. feFaucetConfig . fcLoggerConfigFile) (LoggerName "faucet")
+       . runExceptT
+       . flip runReaderT c
+       . unM
+
+type MonadFaucet c m = (MonadIO m, MonadReader c m, HasFaucetEnv c, WithLogger m, HasLoggerName m)

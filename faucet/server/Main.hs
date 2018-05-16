@@ -7,7 +7,8 @@ import Control.Lens
 import           Network.Wai.Handler.Warp (run)
 import           Servant
 
-import           Pos.Wallet.Web.ClientTypes.Types (CAccountId (..))
+import Control.Monad.Except
+import           Cardano.Wallet.API.V1.Types (PaymentSource (..), WalletId(..), AccountIndex)
 import           Cardano.Faucet
 import System.Remote.Monitoring (forkServer, serverMetricStore)
 import           System.Remote.Monitoring.Statsd (defaultStatsdOptions, forkStatsd)
@@ -15,9 +16,13 @@ import           System.Remote.Monitoring.Statsd (defaultStatsdOptions, forkStat
 main :: IO ()
 main = do
   ekg <- forkServer "localhost" 8001
-  let c = mkFaucetConfig "wallet-url" (CAccountId "wallet-id") defaultStatsdOptions
+  let w = WalletId "test"
+      idx = 0
+      c = mkFaucetConfig "wallet-url" 8000 (PaymentSource w idx) defaultStatsdOptions "./logging.cfg"
   fEnv <- initEnv c (serverMetricStore ekg)
   _statsd <- forkStatsd (c ^. fcStatsdOpts) (fEnv ^. feStore)
   run 8081 (serve serverAPI $ s fEnv)
   where
-      s env = hoistServer serverAPI (runM env) server
+      nat :: FaucetEnv -> M a -> Handler a
+      nat e = Handler . ExceptT . runM e
+      s env = hoistServer serverAPI (nat env) server

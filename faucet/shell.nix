@@ -7,7 +7,10 @@ in
 }:
 let
   inherit (nixpkgs) pkgs lib;
-  cardanoPkgs = import ../. {};
+  localFaucet = self: super: {
+       cardano-sl-faucet = self.callPackage ./. {};
+    };
+  cardanoPkgs = (import ../. {}).extend(localFaucet);
 in
   if pkgs.lib.inNixShell
     then cardanoPkgs.cardano-sl-faucet.env
