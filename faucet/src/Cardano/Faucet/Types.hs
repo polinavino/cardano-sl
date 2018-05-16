@@ -34,6 +34,7 @@ import           System.Metrics.Gauge (Gauge)
 import qualified System.Metrics.Gauge as Gauge
 import           System.Remote.Monitoring.Statsd (StatsdOptions)
 
+import           Cardano.Wallet.API.V1.Types (PaymentSource(..))
 import           Cardano.Wallet.Client (WalletClient)
 import           Cardano.Wallet.Client.Http (defaultManagerSettings, mkHttpClient, newManager)
 import           Pos.Core (Coin (..))
@@ -84,13 +85,13 @@ instance ToJSON DepositResult
 data FaucetConfig = FaucetConfig {
     _fcWalletApiHost :: String
   , _fcWalletApiPort :: Int
-  , _fcFaucetWallet  :: CAccountId
+  , _fcFaucetPaymentSource  :: PaymentSource
   , _fcStatsdOpts    :: StatsdOptions
   }
 
 makeClassy ''FaucetConfig
 
-mkFaucetConfig :: String -> Int -> CAccountId -> StatsdOptions -> FaucetConfig
+mkFaucetConfig :: String -> Int -> PaymentSource -> StatsdOptions -> FaucetConfig
 mkFaucetConfig = FaucetConfig
 
 --------------------------------------------------------------------------------
@@ -99,9 +100,7 @@ data FaucetEnv = FaucetEnv {
   , _feNumWithdrawn  :: Counter
   , _feWalletBalance :: Gauge
   , _feStore         :: Store
-  , _feFaucetWallet  :: CAccountId
-  , _feWalletApiHost :: String
-  , _feWalletApiPort :: Int
+  , _feFaucetConfig  :: FaucetConfig
   , _feWalletClient  :: WalletClient IO
   }
 
@@ -117,9 +116,7 @@ initEnv fc store = do
     let url = BaseUrl Http (fc ^. fcWalletApiHost) (fc ^. fcWalletApiPort) ""
     return $ FaucetEnv withdrawn withdrawCount balance
                        store
-                       (fc ^. fcFaucetWallet)
-                       (fc ^. fcWalletApiHost)
-                       (fc ^. fcWalletApiPort)
+                       fc
                        (mkHttpClient url manager)
 
 incWithDrawn :: (MonadReader e m, HasFaucetEnv e, MonadIO m) => Coin -> m ()

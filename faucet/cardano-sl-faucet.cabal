@@ -30,6 +30,7 @@ library
                      , http-client
                      , lens
                      , mtl
+                     , QuickCheck
                      , servant
                      , servant-client
                      , servant-client-core
@@ -40,6 +41,7 @@ library
   exposed-modules:
                       Cardano.Faucet
                     , Cardano.Faucet.Types
+                    , Cardano.WalletClient
   default-language: Haskell2010
 
 executable faucet
@@ -77,4 +79,5 @@ test-suite cardano-sl-faucet-test
                     base
                 , cardano-sl-faucet
                 , cardano-sl-wallet
+                , QuickCheck
   default-language: Haskell2010
