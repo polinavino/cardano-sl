@@ -17,7 +17,7 @@ import           Pos.Core (Coin (..), Address(..))
 import           Pos.Wallet.Web.ClientTypes.Types (Addr (..), CId (..))
 
 
-withdraw :: (HasFaucetEnv e, MonadReader e m, MonadIO m) => V1 Address -> V1 Coin -> Resp m Transaction
+withdraw :: (MonadFaucet c m) => V1 Address -> V1 Coin -> Resp m Transaction
 withdraw addr coin = do
     paymentSource <- view (feFaucetConfig . fcFaucetPaymentSource)
     client <- liftClient <$> view feWalletClient

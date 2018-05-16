@@ -26,6 +26,7 @@ import           Control.Lens hiding ((.=))
 import           Control.Monad.Except
 import           Control.Monad.Reader
 import           Data.Aeson (FromJSON (..), ToJSON (..), object, withObject, (.:), (.=))
+import Data.Text (Text)
 import           Data.Typeable (Typeable)
 import           GHC.Generics (Generic)
 import           Servant (ServantErr)
@@ -47,7 +48,7 @@ import           Pos.Wallet.Web.ClientTypes.Types (Addr (..), CAccountId (..), C
 
 --------------------------------------------------------------------------------
 data WithDrawlRequest = WithDrawlRequest {
-    _wWalletId :: CAccountId -- Pos.Wallet.Web.ClientTypes.Types.CAccountId
+    _wWalletId :: Text -- Pos.Wallet.Web.ClientTypes.Types.CAccountId
   , _wAmount   :: Coin -- Pos.Core.Common.Types.Coin
   } deriving (Show, Typeable, Generic)
 
@@ -55,11 +56,11 @@ makeLenses ''WithDrawlRequest
 
 instance FromJSON WithDrawlRequest where
   parseJSON = withObject "WithDrawlRequest" $ \v -> WithDrawlRequest
-    <$> (CAccountId <$> v .: "wallet")
+    <$> v .: "wallet"
     <*> (Coin <$> v .: "amount")
 
 instance ToJSON WithDrawlRequest where
-    toJSON (WithDrawlRequest (CAccountId w) (Coin a)) =
+    toJSON (WithDrawlRequest w (Coin a)) =
         object ["wallet" .= w, "amount" .= a]
 
 data WithDrawlResult = WithDrawlResult
@@ -70,7 +71,7 @@ instance ToJSON WithDrawlResult
 
 --------------------------------------------------------------------------------
 data DepositRequest = DepositRequest {
-    _dWalletId :: CAccountId
+    _dWalletId :: Text
   , _dAmount   :: Coin
   } deriving (Show, Typeable, Generic)
 
@@ -78,7 +79,7 @@ makeLenses ''DepositRequest
 
 instance FromJSON DepositRequest where
   parseJSON = withObject "DepositRequest" $ \v -> DepositRequest
-    <$> (CAccountId <$> v .: "wallet")
+    <$> v .: "wallet"
     <*> (Coin <$> v .: "amount")
 
 data DepositResult = DepositResult
