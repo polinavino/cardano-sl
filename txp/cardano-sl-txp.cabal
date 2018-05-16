@@ -83,6 +83,7 @@ library
                      , conduit
                      , containers
                      , data-default
+                     , ed25519 >= 0.0.5.0
                      , ekg-core
                      , ether
                      , exceptions
