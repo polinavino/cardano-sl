@@ -6956,7 +6956,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl";
            version = "1.1.1";
            src = ./../lib;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            libraryHaskellDepends = [
              aeson ansi-terminal ansi-wl-pprint async base bytestring
              canonical-json cardano-crypto cardano-sl-binary cardano-sl-block
@@ -7014,7 +7016,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl-auxx";
            version = "1.1.1";
            src = ./../auxx;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            isLibrary = true;
            isExecutable = true;
            libraryHaskellDepends = [
@@ -7086,7 +7090,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl-block";
            version = "1.1.1";
            src = ./../block;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            libraryHaskellDepends = [
              aeson base bytestring cardano-sl-binary cardano-sl-core
              cardano-sl-crypto cardano-sl-db cardano-sl-delegation
@@ -7122,7 +7128,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl-client";
            version = "1.1.1";
            src = ./../client;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            libraryHaskellDepends = [
              base cardano-sl cardano-sl-block cardano-sl-core cardano-sl-crypto
              cardano-sl-db cardano-sl-infra cardano-sl-networking cardano-sl-txp
@@ -7243,7 +7251,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl-db";
            version = "1.1.1";
            src = ./../db;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            libraryHaskellDepends = [
              base bytestring cardano-sl-binary cardano-sl-core cardano-sl-crypto
              cardano-sl-util concurrent-extra conduit containers data-default
@@ -7269,7 +7279,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl-delegation";
            version = "1.1.1";
            src = ./../delegation;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            libraryHaskellDepends = [
              aeson base cardano-sl-binary cardano-sl-core cardano-sl-crypto
              cardano-sl-db cardano-sl-infra cardano-sl-lrc cardano-sl-networking
@@ -7305,7 +7317,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl-explorer";
            version = "1.1.1";
            src = ./../explorer;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            isLibrary = true;
            isExecutable = true;
            libraryHaskellDepends = [
@@ -7361,7 +7375,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl-generator";
            version = "1.1.1";
            src = ./../generator;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            libraryHaskellDepends = [
              base bytestring cardano-sl cardano-sl-block cardano-sl-client
              cardano-sl-core cardano-sl-crypto cardano-sl-db
@@ -7405,7 +7421,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl-infra";
            version = "1.1.1";
            src = ./../infra;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            libraryHaskellDepends = [
              aeson async base base64-bytestring bytestring cardano-report-server
              cardano-sl-binary cardano-sl-core cardano-sl-crypto cardano-sl-db
@@ -7436,7 +7454,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl-lrc";
            version = "1.1.1";
            src = ./../lrc;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            libraryHaskellDepends = [
              base bytestring cardano-sl-binary cardano-sl-core cardano-sl-crypto
              cardano-sl-db cardano-sl-networking cardano-sl-util conduit ether
@@ -7508,7 +7528,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl-node";
            version = "1.1.1";
            src = ./../node;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            isLibrary = false;
            isExecutable = true;
            executableHaskellDepends = [
@@ -7537,7 +7559,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl-ssc";
            version = "1.1.1";
            src = ./../ssc;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            libraryHaskellDepends = [
              aeson array base bytestring cardano-sl-binary cardano-sl-core
              cardano-sl-crypto cardano-sl-crypto-test cardano-sl-db
@@ -7577,7 +7601,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl-tools";
            version = "1.1.1";
            src = ./../tools;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            isLibrary = true;
            isExecutable = true;
            libraryHaskellDepends = [
@@ -7622,7 +7648,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl-txp";
            version = "1.1.1";
            src = ./../txp;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            libraryHaskellDepends = [
              aeson base bytestring cardano-sl-binary cardano-sl-core
              cardano-sl-crypto cardano-sl-crypto-test cardano-sl-db
@@ -7656,7 +7684,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl-update";
            version = "1.1.1";
            src = ./../update;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            libraryHaskellDepends = [
              aeson base bytestring Cabal cardano-sl-binary cardano-sl-core
              cardano-sl-crypto cardano-sl-crypto-test cardano-sl-db
@@ -7754,7 +7784,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl-wallet";
            version = "1.1.1";
            src = ./../wallet;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            libraryHaskellDepends = [
              acid-state aeson async base base58-bytestring bytestring cardano-sl
              cardano-sl-block cardano-sl-client cardano-sl-core
@@ -7811,7 +7843,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl-wallet-new";
            version = "1.1.1";
            src = ./../wallet-new;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            isLibrary = true;
            isExecutable = true;
            libraryHaskellDepends = [

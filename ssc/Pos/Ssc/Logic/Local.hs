@@ -94,12 +94,10 @@ sscNormalize
        ( MonadGState m
        , MonadBlockDBRead m
        , MonadSscMem ctx m
-       , MonadReader ctx m
        , HasLrcContext ctx
        , WithLogger m
        , MonadIO m
        , Rand.MonadRandom m
-       , HasSscConfiguration
        , HasProtocolConstants
        , HasGenesisData
        , HasProtocolMagic
@@ -124,7 +122,7 @@ sscNormalize = do
     executeMonadBaseRandom seed = hoist $ hoist (pure . fst . Rand.withDRG seed)
 
 sscNormalizeU
-    :: (HasSscConfiguration, HasProtocolConstants, HasGenesisData, HasProtocolMagic)
+    :: (HasProtocolConstants, HasGenesisData, HasProtocolMagic)
     => (EpochIndex, RichmenStakes)
     -> BlockVersionData
     -> SscGlobalState
@@ -147,11 +145,9 @@ sscNormalizeU (epoch, stake) bvd gs = do
 -- to current local data.
 sscIsDataUseful
     :: ( WithLogger m
-       , MonadIO m
        , MonadSlots ctx m
        , MonadSscMem ctx m
        , Rand.MonadRandom m
-       , HasSscConfiguration
        , HasGenesisData
        , HasProtocolConstants
        )
@@ -261,7 +257,7 @@ sscProcessData tag payload =
     executeMonadBaseRandom seed = hoist $ hoist (pure . fst . Rand.withDRG seed)
 
 sscProcessDataDo
-    :: (HasSscConfiguration, MonadState SscLocalData m, HasGenesisData
+    :: (MonadState SscLocalData m, HasGenesisData
       , WithLogger m, Rand.MonadRandom m, HasProtocolConstants
       , HasProtocolMagic)
     => (EpochIndex, RichmenStakes)

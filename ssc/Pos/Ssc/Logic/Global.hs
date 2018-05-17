@@ -8,7 +8,6 @@ module Pos.Ssc.Logic.Global
          sscCalculateSeed
        ) where
 
-import           System.Wlog (WithLogger)
 import           Universum
 
 import           Pos.Binary.Ssc ()
@@ -32,10 +31,8 @@ sscCalculateSeed
     :: forall ctx m.
        ( MonadSscMem ctx m
        , MonadDBRead m
-       , MonadReader ctx m
        , HasLrcContext ctx
        , MonadIO m
-       , WithLogger m
        , HasGenesisBlockVersionData
        )
     => EpochIndex

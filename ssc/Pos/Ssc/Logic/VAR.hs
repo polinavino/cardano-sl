@@ -22,7 +22,7 @@ import           Universum
 
 import           Pos.Binary.Ssc ()
 import           Pos.Core (BlockVersionData, ComponentBlock (..), HeaderHash, HasProtocolMagic,
-                           epochIndexL, epochOrSlotG, headerHash, HasGeneratedSecrets, HasGenesisBlockVersionData,
+                           epochIndexL, epochOrSlotG, headerHash, HasGenesisBlockVersionData,
                            HasCoreConfiguration, HasProtocolConstants, HasGenesisData)
 import           Pos.Core.Ssc (SscPayload (..))
 import           Pos.DB (MonadDBRead, MonadGState, SomeBatchOp (..), gsAdoptedBVData)
@@ -114,7 +114,6 @@ sscVerifyBlocks blocks = do
 -- argument (it can be calculated in advance using 'sscVerifyBlocks').
 sscApplyBlocks
     :: ( SscGlobalApplyMode ctx m
-       , HasGeneratedSecrets
        , HasGenesisData
        , HasProtocolConstants
        , HasProtocolMagic
@@ -134,7 +133,7 @@ sscApplyBlocks blocks Nothing =
     sscApplyBlocksFinish =<< sscVerifyValidBlocks blocks
 
 sscApplyBlocksFinish
-    :: (SscGlobalApplyMode ctx m, HasGeneratedSecrets, HasProtocolMagic)
+    :: (SscGlobalApplyMode ctx m)
     => SscGlobalState -> m [SomeBatchOp]
 sscApplyBlocksFinish gs = do
     sscRunGlobalUpdate (put gs)
@@ -186,7 +185,7 @@ onVerifyFailedInApply hashes e = assertionFailed msg
 -- | Verify SSC-related part of given blocks with respect to current GState
 -- and apply them on success. Blocks must be from the same epoch.
 sscVerifyAndApplyBlocks
-    :: (HasSscConfiguration, SscVerifyMode m, HasProtocolConstants, HasProtocolMagic, HasGenesisData)
+    :: (SscVerifyMode m, HasProtocolConstants, HasProtocolMagic, HasGenesisData)
     => RichmenStakes
     -> BlockVersionData
     -> OldestFirst NE SscBlock
@@ -198,7 +197,7 @@ sscVerifyAndApplyBlocks richmenStake bvd blocks =
     richmenData = HM.fromList [(epoch, richmenStake)]
 
 verifyAndApplyMultiRichmen
-    :: (HasSscConfiguration, SscVerifyMode m, HasProtocolConstants, HasProtocolMagic, HasGenesisData)
+    :: (SscVerifyMode m, HasProtocolConstants, HasProtocolMagic, HasGenesisData)
     => Bool
     -> (MultiRichmenStakes, BlockVersionData)
     -> OldestFirst NE SscBlock
@@ -228,10 +227,8 @@ verifyAndApplyMultiRichmen onlyCerts env =
 -- happen if these blocks haven't been applied before.
 sscRollbackBlocks
     :: ( SscGlobalApplyMode ctx m
-       , HasGeneratedSecrets
        , HasGenesisData
        , HasProtocolConstants
-       , HasProtocolMagic
        )
     => NewestFirst NE SscBlock -> m [SomeBatchOp]
 sscRollbackBlocks blocks = sscRunGlobalUpdate $ do
@@ -239,7 +236,7 @@ sscRollbackBlocks blocks = sscRunGlobalUpdate $ do
     sscGlobalStateToBatch <$> get
 
 sscRollbackU
-  :: (HasSscConfiguration, HasProtocolConstants, HasGenesisData)
+  :: (HasProtocolConstants, HasGenesisData)
   => NewestFirst NE SscBlock -> SscGlobalUpdate ()
 sscRollbackU blocks = tossToUpdate $ rollbackSsc oldestEOS payloads
   where
@@ -271,5 +268,5 @@ tossToVerifier action = do
         Right res -> (identity .= newState) $> res
 
 -- | Dump global state to DB.
-sscGlobalStateToBatch :: (HasGeneratedSecrets, HasProtocolMagic, HasCoreConfiguration) => SscGlobalState -> [SomeBatchOp]
+sscGlobalStateToBatch :: (HasCoreConfiguration) => SscGlobalState -> [SomeBatchOp]
 sscGlobalStateToBatch = one . SomeBatchOp . DB.sscGlobalStateToBatch
