@@ -48,7 +48,7 @@ transactionSpecs wRef wc = do
 
             map txId resp `shouldContain` [txId txn]
 
-        it "posted deposits appear in index for asset locked wallets" $ do
+        it "asset-locked wallets can receive funds and transaction shows in index" $ do
             genesis <- genesisWallet wc
             (fromAcct, _) <- firstAccountAndId wc genesis
 
@@ -78,7 +78,7 @@ transactionSpecs wRef wc = do
 
             map txId resp `shouldContain` [txId txn]
 
-        it "asset-locked transactions fail to submit" $ do
+        it "sending from asset-locked address fails when the account has no other addresses with available funds" $ do
             genesis <- genesisAssetLockedWallet wc
             (fromAcct, _) <- firstAccountAndId wc genesis
 
