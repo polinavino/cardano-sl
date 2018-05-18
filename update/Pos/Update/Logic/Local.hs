@@ -165,9 +165,7 @@ processSkeleton payload =
 refreshMemPool
     :: ( MonadDBRead m
        , MonadUnliftIO m
-       , MonadIO m
        , MonadReader ctx m
-       , HasLens UpdateContext ctx UpdateContext
        , HasLrcContext ctx
        , WithLogger m
        , HasUpdateConfiguration

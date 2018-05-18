@@ -208,7 +208,6 @@ verifyBlock lastAdopted verifyAllIsKnown (ComponentBlockMain header payload) =
 -- global state.
 usCanCreateBlock ::
        ( WithLogger m
-       , MonadIO m
        , MonadUnliftIO m
        , DB.MonadDBRead m
        , MonadReader ctx m

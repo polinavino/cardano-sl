@@ -15,8 +15,7 @@ import           Formatting (build, sformat, (%))
 import           System.Wlog (WithLogger, logNotice, logWarning)
 
 import           Pos.Core.Update (UpdateProposal (..), UpdateVote (..))
-import           Pos.Core (HasGeneratedSecrets, HasProtocolConstants, HasProtocolMagic,
-                           HasGenesisBlockVersionData)
+import           Pos.Core (HasProtocolConstants, HasProtocolMagic, HasGenesisBlockVersionData)
 import           Pos.Update.Logic.Local (processProposal, processVote)
 import           Pos.Update.Mode (UpdateMode)
 
@@ -60,7 +59,6 @@ handleProposal (proposal, votes) = do
 handleVote
     :: forall ctx m .
        ( UpdateMode ctx m
-       , HasGeneratedSecrets
        , HasProtocolConstants
        , HasProtocolMagic
        , HasGenesisBlockVersionData
