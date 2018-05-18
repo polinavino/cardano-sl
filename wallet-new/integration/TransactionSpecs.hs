@@ -3,7 +3,7 @@
 
 module TransactionSpecs (transactionSpecs) where
 
-import           Universum
+import           Universum hiding (log)
 
 import           Cardano.Wallet.API.V1.Errors hiding (describe)
 import           Cardano.Wallet.Client.Http
@@ -11,9 +11,17 @@ import           Control.Lens hiding ((^..), (^?))
 import qualified Pos.Core as Core
 import           Test.Hspec
 
+import           Control.Concurrent (threadDelay)
+import           Text.Show.Pretty (ppShow)
 import           Util
 
 {-# ANN module ("HLint: ignore Reduce duplication" :: Text) #-}
+
+log :: MonadIO m => Text -> m ()
+log = putStrLn . mappend "[TEST-LOG] "
+
+ppShowT :: Show a => a -> Text
+ppShowT = fromString . ppShow
 
 transactionSpecs :: WalletRef -> WalletClient IO -> Spec
 transactionSpecs wRef wc = do
@@ -78,12 +86,12 @@ transactionSpecs wRef wc = do
 
             map txId resp `shouldContain` [txId txn]
 
-        it "sending from asset-locked address fails when the account has no other addresses with available funds" $ do
+        it "sending from asset-locked address in wallet with no ther addresses gets 0 confirmations from core nodes" $ do
             genesis <- genesisAssetLockedWallet wc
             (fromAcct, _) <- firstAccountAndId wc genesis
 
             wallet <- sampleWallet wRef wc
-            (_toAcct, toAddr) <- firstAccountAndId wc wallet
+            (toAcct, toAddr) <- firstAccountAndId wc wallet
 
             let payment = Payment
                     { pmtSource =  PaymentSource
@@ -100,7 +108,16 @@ transactionSpecs wRef wc = do
                 tenthOf (V1 c) = V1 (Core.mkCoin (Core.getCoin c `div` 10))
 
             etxn <- postTransaction wc payment
-            void $ etxn `shouldPrism` _Left
+
+            txn <- fmap wrData etxn `shouldPrism` _Right
+
+            threadDelay 10000
+            eresp <- getTransactionIndex wc (Just (walId wallet)) (Just (accIndex toAcct)) Nothing
+            resp <- fmap wrData eresp `shouldPrism` _Right
+            txnEntry <- head (filter (== (txId txn)) resp)
+            log $ "Resp   : " <> ppShowT txnEntry
+            confirmations <- txConfirmations txnEntry
+            confirmations `shouldBe` (0 :: IO Word)
 
         it "estimate fees of a well-formed transaction" $ do
             ws <- (,)
