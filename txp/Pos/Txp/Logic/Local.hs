@@ -192,7 +192,7 @@ txNormalize =
         extendLocalToilM $ normalizeToil bvd epoch $ HM.toList txs
 
 txNormalizeAbstract ::
-       (TxpLocalWorkMode ctx m, MempoolExt m ~ extraState, Default extraState)
+       (TxpLocalWorkMode ctx m, MempoolExt m ~ extraState)
     => (Utxo -> [TxAux] -> m extraEnv)
     -> (BlockVersionData -> EpochIndex -> HashMap TxId TxAux -> ExtendedLocalToilM extraEnv extraState ())
     -> m ()
