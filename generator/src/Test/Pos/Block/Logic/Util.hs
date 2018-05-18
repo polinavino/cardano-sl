@@ -96,10 +96,8 @@ bpGenBlocks blkCnt enableTxPayload inplaceDB = do
 bpGenBlock
     :: ( MonadBlockGenInit ctx m
        , HasLens' ctx TxpGlobalSettings
-       , Default (MempoolExt m)
        , MonadTxpLocal (BlockGenMode (MempoolExt m) m)
        , HasAllSecrets ctx
-       , MonadTxpLocal (BlockGenMode (MempoolExt m) m)
        , Default (MempoolExt m)
        )
     => EnableTxPayload -> InplaceDB -> PropertyM m Blund
