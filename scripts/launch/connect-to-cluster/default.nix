@@ -13,6 +13,7 @@
 , additionalNodeArgs ? ""
 , confKey ? null
 , relays ? null
+, debug ? false
 , extraParams ? ""
 }:
 
@@ -23,6 +24,7 @@ with localLib;
 # TODO: DEVOPS-462: exchanges should use a different topology
 
 let
+  ifDebug = localLib.optionalString (debug);
   environments = {
     mainnet = {
       relays = "relays.cardano-mainnet.iohk.io";
@@ -34,6 +36,7 @@ let
     };
     demo = {
       confKey = "dev";
+      relays = "127.0.0.1";
     };
     override = {
       inherit relays confKey;
@@ -67,9 +70,11 @@ in pkgs.writeScript "${executable}-connect-to-${environment}" ''
   if [[ "$1" == "--delete-state" ]]; then
     echo "Deleting ${stateDir} ... "
     rm -Rf ${stateDir}
+    shift
   fi
-  if [[ "$2" == "--runtime-args" ]]; then
-    RUNTIME_ARGS=$3
+  if [[ "$1" == "--runtime-args" ]]; then
+    RUNTIME_ARGS=$2
+    shift 2
   else
     RUNTIME_ARGS=""
   fi
@@ -99,6 +104,7 @@ in pkgs.writeScript "${executable}-connect-to-${environment}" ''
     --logs-prefix "${stateDir}/logs"                               \
     --db-path "${stateDir}/db"   ${extraParams}                    \
     ${ ifWallet "--wallet-db-path '${stateDir}/wallet-db'"}        \
+    ${ ifDebug "--wallet-debug"}                                   \
     --keyfile ${stateDir}/secret.key                               \
     ${ ifWallet "--wallet-address ${walletListen}" }               \
     --ekg-server ${ekgListen} --metrics                            \
