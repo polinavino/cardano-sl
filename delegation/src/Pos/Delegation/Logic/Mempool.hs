@@ -49,13 +49,13 @@ import           Pos.Util.Concurrent.PriorityLock (Priority (..))
 
 -- | Retrieves current mempool of heavyweight psks plus undo part.
 getDlgMempool
-    :: (MonadIO m, MonadDBRead m, MonadDelegation ctx m, MonadMask m)
+    :: (MonadIO m, MonadDelegation ctx m)
     => m DlgPayload
 getDlgMempool = UnsafeDlgPayload <$> (runDelegationStateAction $ uses dwProxySKPool HM.elems)
 
 -- | Clears delegation mempool.
 clearDlgMemPool
-    :: (MonadIO m, MonadDelegation ctx m, MonadMask m)
+    :: (MonadIO m, MonadDelegation ctx m)
     => m ()
 clearDlgMemPool = runDelegationStateAction clearDlgMemPoolAction
 
@@ -108,7 +108,6 @@ data PskHeavyVerdict
 type ProcessHeavyConstraint ctx m =
        ( MonadIO m
        , MonadUnliftIO m
-       , MonadMask m
        , MonadDBRead m
        , MonadGState m
        , MonadDelegation ctx m
@@ -126,6 +125,7 @@ processProxySKHeavy
        , HasLens' ctx StateLock
        , HasGenesisBlockVersionData
        , HasProtocolMagic
+       , MonadMask m
        )
     => ProxySKHeavy -> m PskHeavyVerdict
 processProxySKHeavy psk =
