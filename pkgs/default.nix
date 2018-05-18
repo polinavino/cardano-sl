@@ -7168,7 +7168,9 @@ inherit (pkgs) mesa;};
            pname = "cardano-sl-core";
            version = "1.1.1";
            src = ./../core;
-           configureFlags = [ "--ghc-option=-Werror" ];
+           configureFlags = [
+             "--ghc-option=-fwarn-redundant-constraints" "--ghc-option=-Werror"
+           ];
            libraryHaskellDepends = [
              aeson ansi-terminal base base58-bytestring bytestring Cabal
              canonical-json cardano-sl-binary cardano-sl-crypto

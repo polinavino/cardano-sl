@@ -202,7 +202,7 @@ apply-ghc-options: everything
 # If you find it too restrictive, you can use `scripts/build/cardano-sl.sh' script
 ghc-options:
   cardano-sl-util:       -Werror -fwarn-redundant-constraints
-  cardano-sl-core:       -Werror
+  cardano-sl-core:       -Werror -fwarn-redundant-constraints
   cardano-sl-db:         -Werror -fwarn-redundant-constraints
   cardano-sl-ssc:        -Werror -fwarn-redundant-constraints
   cardano-sl-infra:      -Werror -fwarn-redundant-constraints
