@@ -113,11 +113,14 @@ transactionSpecs wRef wc = do
 
             threadDelay 10000
             eresp <- getTransactionIndex wc (Just (walId wallet)) (Just (accIndex toAcct)) Nothing
-            resp <- fmap wrData eresp `shouldPrism` _Right
-            txnEntry <- head (filter (== (txId txn)) resp)
+            resp <- fmap wrData eresp `shouldPrism` _Right :: IO [ Transaction]
+            let txnEntry = head (filter ( \x -> (txId x) == (txId txn)) resp)
             log $ "Resp   : " <> ppShowT txnEntry
-            confirmations <- txConfirmations txnEntry
-            confirmations `shouldBe` (0 :: IO Word)
+            case txnEntry of
+                Just txnEntry' -> do
+                    txConfirmations txnEntry' `shouldBe` 0
+                Nothing -> do
+                    1 `shouldBe` (0 :: Integer)
 
         it "estimate fees of a well-formed transaction" $ do
             ws <- (,)
