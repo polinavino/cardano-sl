@@ -44,7 +44,6 @@ import qualified Pos.DB.BlockIndex as DB
 import qualified Pos.DB.GState.Common as GS (getTip)
 import           Pos.Delegation.Cede (dlgVerifyHeader, runDBCede)
 import qualified Pos.GState.BlockExtra as GS
-import           Pos.Lrc.Context (HasLrcContext)
 import qualified Pos.Lrc.DB as LrcDB
 import           Pos.Slotting.Class (MonadSlots (getCurrentSlot))
 import qualified Pos.Update.DB as GS (getAdoptedBVFull)
@@ -80,8 +79,6 @@ classifyNewHeader
     ( MonadSlots ctx m
     , MonadDBRead m
     , MonadUnliftIO m
-    , MonadSlots ctx m
-    , HasLrcContext ctx
     , HasProtocolMagic
     )
     => BlockHeader -> m ClassifyHeaderRes
@@ -169,8 +166,6 @@ deriving instance Show BlockHeader => Show ClassifyHeadersRes
 classifyHeaders ::
        forall ctx m.
        ( MonadDBRead m
-       , MonadCatch m
-       , HasLrcContext ctx
        , MonadSlots ctx m
        , WithLogger m
        , HasProtocolConstants

@@ -89,9 +89,7 @@ instance Arbitrary (T.Body T.GenesisBlockchain) where
     arbitrary = genericArbitrary
     shrink = genericShrink
 
-instance ( Arbitrary SscProof
-         , Arbitrary SscPayload
-         , HasProtocolMagic
+instance ( HasProtocolMagic
          , HasProtocolConstants
          , HasGenesisHash
          ) =>
@@ -244,7 +242,6 @@ genMainBlock pm pc prevHash difficulty = do
     pure $ T.UnsafeGenericBlock header body extraBodyData
 
 instance ( Arbitrary SscPayload
-         , Arbitrary SscProof
          , Arbitrary SscPayloadDependsOnSlot
          , HasProtocolConstants
          , HasProtocolMagic

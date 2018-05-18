@@ -37,7 +37,7 @@ import           Pos.Block.BListener (MonadBListener)
 import           Pos.Block.Slog (BypassSecurityCheck (..), MonadSlogApply, MonadSlogBase,
                                  ShouldCallBListener, slogApplyBlocks, slogRollbackBlocks)
 import           Pos.Block.Types (Blund, Undo (undoDlg, undoTx, undoUS))
-import           Pos.Core (ComponentBlock (..), IsGenesisHeader, epochIndexL, HasGeneratedSecrets,
+import           Pos.Core (ComponentBlock (..), IsGenesisHeader, epochIndexL,
                            gbHeader, headerHash, mainBlockDlgPayload, mainBlockSscPayload, HasGenesisData,
                            mainBlockTxPayload, mainBlockUpdatePayload, HasGenesisBlockVersionData,
                            HasGenesisData, HasProtocolConstants, HasProtocolMagic)
@@ -148,7 +148,6 @@ normalizeMempool = do
 applyBlocksUnsafe
     :: forall ctx m .
        ( MonadBlockApply ctx m
-       , HasGeneratedSecrets
        , HasGenesisData
        , HasGenesisBlockVersionData
        , HasProtocolConstants
@@ -186,7 +185,6 @@ applyBlocksUnsafe scb blunds pModifier = do
 applyBlocksDbUnsafeDo
     :: forall ctx m .
        ( MonadBlockApply ctx m
-       , HasGeneratedSecrets
        , HasGenesisData
        , HasGenesisBlockVersionData
        , HasProtocolConstants
@@ -222,7 +220,6 @@ applyBlocksDbUnsafeDo scb blunds pModifier = do
 rollbackBlocksUnsafe
     :: forall ctx m.
        ( MonadBlockApply ctx m
-       , HasGeneratedSecrets
        , HasGenesisData
        , HasProtocolConstants
        , HasProtocolMagic

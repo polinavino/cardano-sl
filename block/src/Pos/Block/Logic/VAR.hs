@@ -264,7 +264,6 @@ applyBlocks calculateLrc pModifier blunds = do
 -- | Rollbacks blocks. Head must be the current tip.
 rollbackBlocks
     :: ( MonadBlockApply ctx m
-       , HasGeneratedSecrets
        , HasGenesisBlockVersionData
        , HasProtocolConstants
        , HasProtocolMagic

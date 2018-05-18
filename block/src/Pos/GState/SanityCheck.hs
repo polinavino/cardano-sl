@@ -20,7 +20,6 @@ sanityCheckDB ::
        , WithLogger m
        , MonadDBRead m
        , MonadUnliftIO m
-       , MonadReader ctx m
        , HasGenesisData
        )
     => m ()
@@ -28,12 +27,10 @@ sanityCheckDB = inAssertMode sanityCheckGStateDB
 
 -- | Check that GState DB is consistent.
 sanityCheckGStateDB ::
-       forall ctx m.
+       forall m.
        ( MonadDBRead m
        , MonadUnliftIO m
-       , MonadMask m
        , WithLogger m
-       , MonadReader ctx m
        , HasGenesisData
        )
     => m ()

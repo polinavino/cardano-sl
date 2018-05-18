@@ -62,7 +62,7 @@ getLastSlots =
     gsGetBi lastSlotsKey
 
 -- | Retrieves first genesis block hash.
-getFirstGenesisBlockHash :: (MonadDBRead m, MonadThrow m, HasGenesisHash) => m HeaderHash
+getFirstGenesisBlockHash :: (MonadDBRead m, HasGenesisHash) => m HeaderHash
 getFirstGenesisBlockHash =
     resolveForwardLink (genesisHash :: HeaderHash) >>=
     maybeThrow (DBMalformed "Can't retrieve genesis block, maybe db is not initialized?")

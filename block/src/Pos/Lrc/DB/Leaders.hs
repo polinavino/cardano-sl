@@ -22,7 +22,7 @@ import           Pos.Binary.Class (serialize')
 import           Pos.Binary.Core ()
 import           Pos.Core (EpochIndex, HasProtocolConstants, SlotId (SlotId),
                            SlotLeaders, StakeholderId, flattenSlotId, unsafeMkLocalSlotIndex,
-                           HasGeneratedSecrets, HasGenesisData)
+                           HasGenesisData)
 import           Pos.DB.Class (MonadDB, MonadDBRead)
 import           Pos.Lrc.DB.Common (dbHasKey, getBi, putBatch, putBatchBi, putBi, toRocksOps)
 import           Pos.Lrc.Genesis (genesisLeaders)
@@ -58,7 +58,6 @@ putLeadersForEpoch epoch leaders = do
 prepareLrcLeaders ::
        ( MonadDB m
        , HasProtocolConstants
-       , HasGeneratedSecrets
        , HasGenesisData
        )
     => m ()
@@ -127,7 +126,7 @@ putLeadersForEpochSeparatelyOps epoch leaders =
     [(leaderKey $ mkSlotId epoch i, leader)
     | (i, leader) <- zip [0..] $ toList leaders]
   where
-    mkSlotId :: HasProtocolConstants => EpochIndex -> Word16 -> SlotId
+    mkSlotId :: EpochIndex -> Word16 -> SlotId
     mkSlotId epoch' slot =
         -- Using @unsafeMkLocalSlotIndex@ because we trust the callers.
         SlotId epoch' (unsafeMkLocalSlotIndex slot)
