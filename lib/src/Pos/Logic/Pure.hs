@@ -11,7 +11,7 @@ import qualified Data.ByteString as BS
 import           Data.Coerce (coerce)
 import           Data.Default (def)
 
-import           Pos.Binary.Class (serialize')
+import           Pos.Binary.Class (serialize)
 import           Pos.Core (ApplicationName (..), Block, BlockHeader (..), BlockVersion (..),
                            BlockVersionData (..), ExtraBodyData, ExtraHeaderData, GenericBlock (..),
                            GenericBlockHeader (..), HeaderHash, SoftforkRule (..),
@@ -126,7 +126,7 @@ block :: Block
 block = Right mainBlock
 
 serializedBlock :: SerializedBlock
-serializedBlock = Serialized $ serialize' block
+serializedBlock = Serialized $ serialize block
 
 mainBlock :: MainBlock
 mainBlock = UnsafeGenericBlock

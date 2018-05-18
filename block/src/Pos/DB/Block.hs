@@ -36,7 +36,7 @@ import           Universum
 
 import           Control.Exception.Safe (handle)
 import           Control.Lens (at)
-import qualified Data.ByteString as BS (hPut, readFile)
+import qualified Data.ByteString.Lazy as BSL
 import           Data.Default (Default (def))
 import           Formatting (formatToString)
 import           System.Directory (createDirectoryIfMissing, removeFile)
@@ -45,7 +45,7 @@ import           System.IO (IOMode (WriteMode), hClose, hFlush, openBinaryFile)
 import           System.IO.Error (IOError, isDoesNotExistError)
 
 import           Pos.Binary.Block.Types ()
-import           Pos.Binary.Class (Bi, decodeFull', serialize')
+import           Pos.Binary.Class (Bi, decodeFull, decodeFull', serialize, serialize')
 import           Pos.Binary.Core ()
 import           Pos.Block.BHelpers ()
 import           Pos.Block.Types (Blund, SerializedBlund, SlogUndo (..), Undo (..))
@@ -80,7 +80,7 @@ getBlund x =
         <*> MaybeT (getUndo x)
 
 putBlunds :: MonadDB m => NonEmpty Blund -> m ()
-putBlunds = dbPutSerBlunds . map (fmap (Serialized . serialize'))
+putBlunds = dbPutSerBlunds . map (fmap (Serialized . serialize))
 
 -- | Get 'Block' corresponding to tip.
 getTipBlock :: MonadDBRead m => m Block
@@ -93,11 +93,11 @@ getTipBlock = getTipSomething "block" getBlock
 -- Get serialization of a block with given hash from Block DB.
 getSerializedBlock
     :: forall ctx m. (MonadRealDB ctx m)
-    => HeaderHash -> m (Maybe ByteString)
+    => HeaderHash -> m (Maybe BSL.ByteString)
 getSerializedBlock = blockDataPath >=> getRawData
 
 -- Get serialization of an undo data for block with given hash from Block DB.
-getSerializedUndo :: (MonadRealDB ctx m) => HeaderHash -> m (Maybe ByteString)
+getSerializedUndo :: (MonadRealDB ctx m) => HeaderHash -> m (Maybe BSL.ByteString)
 getSerializedUndo = undoDataPath >=> getRawData
 
 -- For every blund, put given block, its metadata and Undo data into
@@ -135,7 +135,7 @@ prepareBlockDB
     :: MonadDB m
     => GenesisBlock -> m ()
 prepareBlockDB blk =
-    dbPutSerBlunds $ one (Left blk, Serialized $ serialize' genesisUndo)
+    dbPutSerBlunds $ one (Left blk, Serialized $ serialize genesisUndo)
   where
     genesisUndo =
         Undo
@@ -168,13 +168,13 @@ dbGetSerBlockPureDefault
     :: (MonadPureDB ctx m)
     => HeaderHash
     -> m (Maybe SerializedBlock)
-dbGetSerBlockPureDefault h = (Serialized . serialize' . fst) <<$>> dbGetBlundPureDefault h
+dbGetSerBlockPureDefault h = (Serialized . serialize . fst) <<$>> dbGetBlundPureDefault h
 
 dbGetSerUndoPureDefault
     :: forall ctx m. (MonadPureDB ctx m)
     => HeaderHash
     -> m (Maybe SerializedUndo)
-dbGetSerUndoPureDefault h = (Serialized . serialize' . snd) <<$>> dbGetBlundPureDefault h
+dbGetSerUndoPureDefault h = (Serialized . serialize . snd) <<$>> dbGetBlundPureDefault h
 
 dbPutSerBlundsPureDefault ::
        forall ctx m. (MonadPureDB ctx m, MonadDB m)
@@ -182,7 +182,7 @@ dbPutSerBlundsPureDefault ::
     -> m ()
 dbPutSerBlundsPureDefault (toList -> blunds) = do
     forM_ blunds $ \(blk, serUndo) -> do
-        undo <- eitherToThrow $ first DBMalformed $ decodeFull' $ unSerialized serUndo
+        undo <- eitherToThrow $ first DBMalformed $ decodeFull $ unSerialized serUndo
         let blund :: Blund -- explicit signature is required
             blund = (blk,undo)
         (var :: DBPureVar) <- view (lensOf @DBPureVar)
@@ -249,8 +249,8 @@ dbPutSerBlundsSumDefault b =
 -- Helpers
 ----------------------------------------------------------------------------
 
-getRawData ::  forall m . (MonadIO m, MonadCatch m) => FilePath -> m (Maybe ByteString)
-getRawData  = handle handler . fmap Just . liftIO . BS.readFile
+getRawData ::  forall m . (MonadIO m, MonadCatch m) => FilePath -> m (Maybe BSL.ByteString)
+getRawData  = handle handler . fmap Just . liftIO . BSL.readFile
   where
     handler :: IOError -> m (Maybe x)
     handler e
@@ -258,12 +258,12 @@ getRawData  = handle handler . fmap Just . liftIO . BS.readFile
         | otherwise = throwM e
 
 putData ::  (MonadIO m, Bi v) => FilePath -> v -> m ()
-putData fp = putRawData fp . serialize'
+putData fp = putRawData fp . serialize
 
-putRawData ::  MonadIO m => FilePath -> ByteString -> m ()
+putRawData ::  MonadIO m => FilePath -> BSL.ByteString -> m ()
 putRawData fp v = liftIO $
     bracket (openBinaryFile fp WriteMode) hClose $ \h ->
-        BS.hPut h v >> hFlush h
+        BSL.hPut h v >> hFlush h
 
 deleteData :: (MonadIO m, MonadCatch m) => FilePath -> m ()
 deleteData fp = (liftIO $ removeFile fp) `catch` handler
