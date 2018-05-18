@@ -83,7 +83,7 @@ spec = withDefConfiguration $ describe "Txp.Toil.Utxo" $ do
 -- Properties
 ----------------------------------------------------------------------------
 
-findTxInUtxo :: HasConfiguration => TxIn -> TxOutAux -> Utxo -> Bool
+findTxInUtxo :: TxIn -> TxOutAux -> Utxo -> Bool
 findTxInUtxo key txO utxo =
     let utxo' = M.delete key utxo
         newUtxo = M.insert key txO utxo
@@ -231,8 +231,7 @@ txChecksum extendedInputs txOuts =
         outSum = sumCoins $ map txOutValue txOuts
     in inpSum >= outSum
 
-applyTxToUtxoGood :: HasConfiguration
-                  => (TxIn, TxOutAux)
+applyTxToUtxoGood :: (TxIn, TxOutAux)
                   -> M.Map TxIn TxOutAux
                   -> NonEmpty TxOutAux
                   -> Bool
@@ -431,7 +430,7 @@ scriptTxSpec = describe "script transactions" $ do
 
     -- Try to apply a transaction (with given utxo as context) and say
     -- whether it applied successfully
-    tryApplyTx :: HasConfiguration => Utxo -> TxAux -> Either ToilVerFailure ()
+    tryApplyTx :: Utxo -> TxAux -> Either ToilVerFailure ()
     tryApplyTx utxo txa =
         evalUtxoM mempty (utxoToLookup utxo) . runExceptT $
         () <$ verifyTxUtxo vtxContext txa
@@ -439,8 +438,7 @@ scriptTxSpec = describe "script transactions" $ do
     -- Test tx1 against tx0. Tx0 will be a script transaction with given
     -- validator. Tx1 will be a P2PK transaction spending tx0 (with given
     -- input witness).
-    checkScriptTx :: HasConfiguration
-                  => Script
+    checkScriptTx :: Script
                   -> (TxSigData -> TxInWitness)
                   -> Either ToilVerFailure ()
     checkScriptTx val mkWit =

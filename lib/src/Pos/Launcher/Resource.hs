@@ -50,7 +50,7 @@ import           Pos.Reporting (initializeMisbehaviorMetrics)
 import           Pos.Shutdown.Types (ShutdownContext (..))
 import           Pos.Slotting (SimpleSlottingStateVar, mkSimpleSlottingStateVar)
 import           Pos.Slotting.Types (SlottingData)
-import           Pos.Ssc (HasSscConfiguration, SscParams, SscState, createSscContext, mkSscState)
+import           Pos.Ssc (SscParams, SscState, createSscContext, mkSscState)
 import           Pos.StateLock (newStateLock)
 import           Pos.Txp (GenericTxpLocalData (..), TxpGlobalSettings, mkTxpLocalData,
                           recordTxpMetrics)
@@ -94,7 +94,6 @@ allocateNodeResources
        ( Default ext
        , HasConfiguration
        , HasNodeConfiguration
-       , HasSscConfiguration
        , HasDlgConfiguration
        , HasBlockConfiguration
        )
@@ -181,7 +180,6 @@ bracketNodeResources :: forall ext a.
       ( Default ext
       , HasConfiguration
       , HasNodeConfiguration
-      , HasSscConfiguration
       , HasDlgConfiguration
       , HasBlockConfiguration
       )

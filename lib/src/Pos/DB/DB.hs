@@ -19,7 +19,6 @@ import           Pos.DB.Class (MonadDB, MonadDBRead (..))
 import           Pos.GState.GState (prepareGStateDB)
 import           Pos.Lrc.DB (prepareLrcDB)
 import           Pos.Lrc.Genesis (genesisLeaders)
-import           Pos.Ssc.Configuration (HasSscConfiguration)
 import           Pos.Update.DB (getAdoptedBVData)
 
 -- | Initialize DBs if necessary.
@@ -28,7 +27,6 @@ initNodeDBs
        ( MonadReader ctx m
        , MonadDB m
        , HasConfiguration
-       , HasSscConfiguration
        )
     => m ()
 initNodeDBs = do
