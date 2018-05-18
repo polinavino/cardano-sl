@@ -314,13 +314,14 @@ mkSlottingVar = newTVarIO =<< GState.getSlottingData
 -- | Notify process manager tools like systemd the node is ready.
 -- Available only on Linux for systems where `libsystemd-dev` is installed.
 -- It defaults to a noop for all the other platforms.
-notifyReady :: (MonadIO m, WithLogger m) => m ()
 #ifdef linux_HOST_OS
+notifyReady :: (MonadIO m, WithLogger m) => m ()
 notifyReady = do
     res <- liftIO Systemd.notifyReady
     case res of
         Just () -> return ()
         Nothing -> Logger.logWarning "notifyReady failed to notify systemd."
 #else
+notifyReady :: (MonadIO m) => m ()
 notifyReady = return ()
 #endif
