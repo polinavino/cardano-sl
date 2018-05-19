@@ -51,7 +51,6 @@ import           Pos.DB (DBError (..), DBIteratorClass (..), DBTag (GStateDB), M
 import           Pos.DB.DB (initNodeDBs)
 import           Pos.DB.GState.Common (gsGetBi, gsPutBi, writeBatchGState)
 import           Pos.Explorer.Core (AddrHistory, TxExtra (..))
-import           Pos.Ssc (HasSscConfiguration)
 import           Pos.Txp.DB (getAllPotentiallyHugeUtxo, utxoSource)
 import           Pos.Txp.GenesisUtxo (genesisUtxo)
 import           Pos.Txp.Toil (GenesisUtxo (..), utxoF, utxoToAddressCoinPairs)
@@ -66,7 +65,6 @@ explorerInitDB
        , MonadUnliftIO m
        , MonadDB m
        , HasConfiguration
-       , HasSscConfiguration
        )
     => m ()
 explorerInitDB = initNodeDBs >> prepareExplorerDB
