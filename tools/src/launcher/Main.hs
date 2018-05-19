@@ -125,7 +125,7 @@ instance FromJSON LauncherOptions where
                 ]
 
 -- | The concrete monad where everything happens
-type M a = (HasConfigurations, HasCompileInfo) => Log.LoggerNameBox IO a
+type M a = Log.LoggerNameBox IO a
 
 -- | Executable can be node, wallet or updater
 data Executable = EWallet | ENode | EUpdater
@@ -379,7 +379,8 @@ main =
 -- * Launch the node.
 -- * If it exits with code 20, then update and restart, else quit.
 serverScenario
-    :: NodeDbPath
+    :: (HasCompileInfo, HasConfigurations)
+    => NodeDbPath
     -> Maybe FilePath     -- ^ Log prefix
     -> Maybe FilePath     -- ^ Logger config
     -> NodeData           -- ^ Node, args, log path
@@ -406,7 +407,8 @@ serverScenario ndbp logPrefix logConf node updater report = do
 -- * Launch the node and the wallet.
 -- * If the wallet exits with code 20, then update and restart, else quit.
 clientScenario
-    :: NodeDbPath
+    :: (HasCompileInfo, HasConfigurations)
+    => NodeDbPath
     -> Maybe FilePath    -- ^ Log prefix
     -> Maybe FilePath    -- ^ Logger config
     -> NodeData          -- ^ Node, args, node log path
@@ -471,7 +473,7 @@ clientScenario ndbp logPrefix logConf node wallet updater nodeTimeout report wal
             logWarning "The node didn't die after 'terminateProcess'"
             maybeTrySIGKILL nodeHandle
 
-frontendOnlyScenario :: NodeDbPath -> NodeData -> NodeData -> UpdaterData -> Bool -> M ()
+frontendOnlyScenario :: (HasConfigurations) => NodeDbPath -> NodeData -> NodeData -> UpdaterData -> Bool -> M ()
 frontendOnlyScenario ndbp node wallet updater walletLog = do
     runUpdater ndbp updater
     logInfo "Waiting for wallet to finish..."
@@ -487,7 +489,7 @@ frontendOnlyScenario ndbp node wallet updater walletLog = do
 
 -- | We run the updater and delete the update file if the update was
 -- successful.
-runUpdater :: NodeDbPath -> UpdaterData -> M ()
+runUpdater :: HasConfigurations => NodeDbPath -> UpdaterData -> M ()
 runUpdater ndbp ud = do
     let path = udPath ud
         args = udArgs ud
@@ -523,7 +525,7 @@ runUpdater ndbp ud = do
             ExitFailure code ->
                 logWarning $ sformat ("The updater has failed (exit code "%int%")") code
 
-runUpdaterProc :: HasConfigurations => FilePath -> [Text] -> M ExitCode
+runUpdaterProc :: FilePath -> [Text] -> M ExitCode
 runUpdaterProc path args = do
     logNotice $ sformat ("    "%string%" "%stext) path (unwords $ map quote args)
     liftIO $ do
@@ -656,7 +658,8 @@ customLogger hndl loggerName logStr = do
 -- ...Or maybe we don't care because we don't restart anything after sending
 -- logs (and so the user never actually sees the process or waits for it).
 reportNodeCrash
-    :: ExitCode        -- ^ Exit code of the node
+    :: (HasCompileInfo, HasConfigurations)
+    => ExitCode        -- ^ Exit code of the node
     -> Maybe FilePath  -- ^ Log prefix
     -> Maybe FilePath  -- ^ Path to the logger config
     -> String          -- ^ URL of the server
@@ -686,7 +689,7 @@ reportNodeCrash exitCode _ logConfPath reportServ = do
 
 -- Taken from the 'turtle' library and modified
 system'
-    :: (HasConfigurations, MonadIO io)
+    :: MonadIO io
     => MVar ProcessHandle
     -- ^ Where to put process handle
     -> Process.CreateProcess
