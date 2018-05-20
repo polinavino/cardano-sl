@@ -54,7 +54,7 @@ import           Test.QuickCheck.Random
 --
 
 -- | Generates an example for type `a` with a static seed.
-genExample :: (ToJSON a, Example a) => a
+genExample :: Example a => a
 genExample = (unGen (resize 3 example)) (mkQCGen 42) 42
 
 -- | Generates a `NamedSchema` exploiting the `ToJSON` instance in scope,

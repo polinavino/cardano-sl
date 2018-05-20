@@ -70,18 +70,17 @@ import           Cardano.NodeIPC (startNodeJsIPC)
 type Plugin m = [Diffusion m -> m ()]
 
 -- | A @Plugin@ to periodically compact & snapshot the acid-state database.
-acidCleanupWorker :: HasConfigurations
-                  => WalletBackendParams
+acidCleanupWorker :: WalletBackendParams
                   -> Plugin WalletWebMode
 acidCleanupWorker WalletBackendParams{..} = pure $ const $
     modifyLoggerName (const "acidcleanup") $
     askWalletDB >>= \db -> cleanupAcidStatePeriodically db (walletAcidInterval walletDbOptions)
 
 -- | The @Plugin@ which defines part of the conversation protocol for this node.
-conversation :: (HasConfigurations, HasCompileInfo) => WalletBackendParams -> Plugin WalletWebMode
+conversation :: HasConfigurations => WalletBackendParams -> Plugin WalletWebMode
 conversation wArgs = map const (pluginsMonitoringApi wArgs)
   where
-    pluginsMonitoringApi :: (WorkMode ctx m , HasNodeContext ctx , HasConfigurations, HasCompileInfo)
+    pluginsMonitoringApi :: (WorkMode ctx m , HasNodeContext ctx)
                          => WalletBackendParams
                          -> [m ()]
     pluginsMonitoringApi WalletBackendParams {..}
@@ -203,12 +202,12 @@ walletBackend (NewWalletBackendParams WalletBackendParams{..}) passive = pure $ 
     lower env = runProduction . (`runReaderT` env)
 
 -- | A @Plugin@ to resubmit pending transactions.
-resubmitterPlugin :: (HasConfigurations, HasCompileInfo) => Plugin WalletWebMode
+resubmitterPlugin :: HasConfigurations => Plugin WalletWebMode
 resubmitterPlugin = [\diffusion -> askWalletDB >>= \db ->
                         startPendingTxsResubmitter db (sendTx diffusion)]
 
 -- | A @Plugin@ to notify frontend via websockets.
-notifierPlugin :: (HasConfigurations, HasCompileInfo) => Plugin WalletWebMode
+notifierPlugin :: HasConfigurations => Plugin WalletWebMode
 notifierPlugin = [const V0.notifierPlugin]
 
 -- | The @Plugin@ responsible for the restoration & syncing of a wallet.
