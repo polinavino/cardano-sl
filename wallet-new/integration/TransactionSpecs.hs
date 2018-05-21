@@ -56,7 +56,7 @@ transactionSpecs wRef wc = do
 
             map txId resp `shouldContain` [txId txn]
 
-        it "asset-locked wallets can receive funds and transaction shows in index" $ do
+        it "asset-locked wallets can receive funds and transaction are confirmed in index" $ do
             genesis <- genesisWallet wc
             (fromAcct, _) <- firstAccountAndId wc genesis
 
@@ -81,10 +81,14 @@ transactionSpecs wRef wc = do
 
             txn <- fmap wrData etxn `shouldPrism` _Right
 
+            threadDelay 120000000
             eresp <- getTransactionIndex wc (Just (walId wallet)) (Just (accIndex toAcct)) Nothing
             resp <- fmap wrData eresp `shouldPrism` _Right
 
             map txId resp `shouldContain` [txId txn]
+            let txnEntry = head (filter ( \x -> (txId x) == (txId txn)) resp)
+            log $ "Resp   : " <> ppShowT txnEntry
+            fmap txConfirmations txnEntry `shouldNotBe` Just 0
 
         it "sending from asset-locked address in wallet with no ther addresses gets 0 confirmations from core nodes" $ do
             genesis <- genesisAssetLockedWallet wc
@@ -111,16 +115,12 @@ transactionSpecs wRef wc = do
 
             txn <- fmap wrData etxn `shouldPrism` _Right
 
-            threadDelay 10000
+            threadDelay 120000000
             eresp <- getTransactionIndex wc (Just (walId wallet)) (Just (accIndex toAcct)) Nothing
             resp <- fmap wrData eresp `shouldPrism` _Right :: IO [ Transaction]
             let txnEntry = head (filter ( \x -> (txId x) == (txId txn)) resp)
             log $ "Resp   : " <> ppShowT txnEntry
-            case txnEntry of
-                Just txnEntry' -> do
-                    txConfirmations txnEntry' `shouldBe` 0
-                Nothing -> do
-                    1 `shouldBe` (0 :: Integer)
+            fmap txConfirmations txnEntry `shouldBe` Just 0
 
         it "estimate fees of a well-formed transaction" $ do
             ws <- (,)
