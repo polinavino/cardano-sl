@@ -20,20 +20,29 @@ extra-source-files:
 library
   hs-source-dirs:
       src
-  build-depends:       base
+  build-depends:       QuickCheck
                      , aeson
+                     , base
+                     , base16-bytestring
+                     , bytestring
                      , cardano-sl-core
+                     , cardano-sl-crypto
                      , cardano-sl-wallet
                      , cardano-sl-wallet-new
+                     , connection
+                     , cryptonite
+                     , data-default
                      , ekg-core
                      , ekg-statsd
                      , exceptions
                      , http-client
+                     , http-client-tls
                      , lens
                      , log-warper
+                     , memory
                      , mmorph
                      , mtl
-                     , QuickCheck
+                     , serokell-util
                      , servant
                      , servant-client
                      , servant-client-core
@@ -42,6 +51,8 @@ library
                      , servant-swagger-ui
                      , swagger2
                      , text
+                     , text-format
+                     , tls
   exposed-modules:
                       Cardano.Faucet
                     , Cardano.Faucet.Types

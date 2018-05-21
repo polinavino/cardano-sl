@@ -18,7 +18,8 @@ import           System.Wlog (HasLoggerName, LoggerName (..), WithLogger, logErr
                               withSublogger)
 
 import           Pos.Core (Address (..))
-import           Cardano.Wallet.API.V1.Types (V1(..))
+import           Cardano.Wallet.API.V1.Types (V1(..), unV1)
+import           Cardano.Wallet.API.Response (WalletResponse(..))
 import           Cardano.Faucet.Types
 import qualified Cardano.WalletClient as Client
 -- import           Client.Cardano.Wallet.Web.Run     (runEndpointClient)
@@ -28,14 +29,19 @@ type API = "withdraw" :> ReqBody '[JSON] WithDrawlRequest :> Post '[JSON] WithDr
 
 withdraw :: (MonadFaucet c m) => WithDrawlRequest -> m WithDrawlResult
 withdraw wd = withSublogger (LoggerName "withdraw") $ do
-    resp <- Client.withdraw addr (wd ^. wAmount . to V1)
-    incWithDrawn (wd ^. wAmount)
-    logInfo ((wd ^. to show . packed) <> " withdrawn")
-    return WithDrawlResult
-    where
-        addr :: V1 Address
-        -- TODO: What goes here?
-        addr = _
+    resp <- Client.withdraw (wd ^. wAddress) (wd ^. wAmount)
+    case resp of
+        Left err -> do
+            logError ("Error withdrawing " <> (wd ^. to show . packed)
+                                           <> " error: "
+                                           <> (err ^. to show . packed))
+            return $ WithdrawlError err
+        Right wr -> do
+            let txn = wrData wr
+            logInfo ((wd ^. to show . packed) <> " withdrawn. txn: "
+                                              <> (txn ^. to show . packed))
+            incWithDrawn (wd ^. wAmount . to unV1)
+            return $ WithdrawlSuccess txn
 
 deposit :: (MonadFaucet c m) => DepositRequest -> m DepositResult
 deposit dr = withSublogger (LoggerName "deposit") $ do
