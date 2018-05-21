@@ -9,6 +9,7 @@ module Pos.Arbitrary.Txp
        , DoubleInputTx (..)
        , GoodTx (..)
        , goodTxToTxAux
+       , buildProperTx
 
        -- | Standalone generators.
        , genTx

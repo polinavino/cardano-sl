@@ -223,6 +223,7 @@ test-suite test
                      , cardano-sl-binary
                      , cardano-sl-core
                      , cardano-sl-crypto
+                     , cardano-sl-txp
                      , cardano-sl-util-test
                      , cborg >= 0.2.0.0
                      , ed25519 >= 0.0.5.0
