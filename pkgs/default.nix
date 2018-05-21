@@ -6978,7 +6978,7 @@ inherit (pkgs) mesa;};
            testHaskellDepends = [
              base bytestring cardano-crypto cardano-sl-binary cardano-sl-block
              cardano-sl-core cardano-sl-crypto cardano-sl-crypto-test
-             cardano-sl-delegation cardano-sl-infra cardano-sl-lrc
+             cardano-sl-db cardano-sl-delegation cardano-sl-infra cardano-sl-lrc
              cardano-sl-networking cardano-sl-ssc cardano-sl-txp
              cardano-sl-update cardano-sl-util cardano-sl-util-test cborg
              containers cryptonite data-default extra filelock fmt formatting
