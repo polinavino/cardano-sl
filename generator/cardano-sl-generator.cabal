@@ -113,6 +113,7 @@ test-suite cardano-generator-test
                        Spec
 
                        Test.Pos.Lrc.WorkerSpec
+                       Test.Pos.Binary.CommunicationSpec
                        Test.Pos.Block.Logic.CreationSpec
                        Test.Pos.Block.Logic.VarSpec
                        Test.Pos.Block.Property
