@@ -97,11 +97,11 @@ Class FinMapWD `{I : Type} `{O : Type} : Type :=
 Coercion fm : FinMapWD >-> FinMap.
 
 (* transaction output with index Ix *)
-Definition IxTxOut : Type := @FinMapWD Ix TxOut.
+Definition outputs : Type := @FinMapWD Ix TxOut.
 
 
 (* transaction *)
-Inductive Tx := MkTx : Pow (Tx * Ix) -> IxTxOut -> Tx.
+Inductive Tx := MkTx : Pow (Tx * Ix) -> outputs -> Tx.
 
 
 (* transaction input *)
@@ -208,12 +208,14 @@ Variable ours : Addr -> bool.
 (* our unspent transaction outputs *)
 Definition TxOuts_ours (outs : Outs) := filter (fun a => ours (fst a)) outs.
 
+
 (*
 Fixpoint TxOuts_ours (outs : Outs) := 
   match outs with
   | nil => nil
   | a :: l => if ours (fst a) then a :: TxOuts_ours l else TxOuts_ours l
   end.*)
+
 
 (* OPERATIONS ON UTxO *)
 
@@ -318,6 +320,9 @@ exists (d_r_fm ins (# u)). exact (d_r_ins_dist ins u).
 Defined.
 
 
+Notation "ins <| u" := (d_r ins u) (at level 50).
+
+
 (* domain exclusion *)
 Fixpoint d_e_fm (ins : Ins) (u : FinMap TxIn TxOut) : FinMap TxIn TxOut :=
   match u with
@@ -349,6 +354,8 @@ Qed.
 Definition d_e (ins : Ins) (u : UTxO) : UTxO.
 exists (d_e_fm ins (# u)). exact (d_e_ins_dist ins u).
 Defined.
+
+Notation "ins </| u" := (d_e ins u) (at level 50).
 
 (* range restriction *)
 Fixpoint r_r_fm (u : FinMap TxIn TxOut) (outs : Outs)  : FinMap TxIn TxOut :=
@@ -404,6 +411,9 @@ exists (r_r_fm (# u) outs). apply (r_r_ins_dist u outs).
 Defined.
 
 
+Notation "u |> outs" := (r_r u outs) (at level 50).
+
+
 Definition r_r_ours (u : UTxO) : UTxO.
 exists (r_r_ours_fm (# u)). apply (r_r_ins_dist u). exact nil.
 Defined.
@@ -437,7 +447,7 @@ Example drutxo1_ins : Pow TxIn :=
 (* domain restriction defined by drutxo1_ins for ins defined by d_r_utxo1_ins12 
    the same as computed by d_r function *)
 Example d_r_utxo1_ins12_pf :
-   d_r_utxo1_ins12 = (d_r drutxo1_ins utxo1).
+   d_r_utxo1_ins12 = (drutxo1_ins <| utxo1).
 Proof.
   unfold utxo1. unfold d_r_utxo1_ins12.
   unfold drutxo1_ins. unfold d_r. compute.
@@ -531,7 +541,7 @@ Ltac prove_eq_props2 a ins pf ins_unique0 H IHutxo0 :=
 
 (* property 1 *)
 Definition UTxO_prop1 : forall (ins : Pow TxIn) (u : UTxO),
-  UTxOinc (d_r ins u) u.
+  UTxOinc (ins <| u) u.
 Proof.
   intros ins u. intros io H.
   destruct u as (utxo0, ins_unique0); induction utxo0; prove_prop ins a H utxo0 IHutxo0 ins_unique0.
@@ -539,7 +549,7 @@ Qed.
 
 (* property 2 *)
 Definition UTxO_prop2 : forall (ins : Pow TxIn) (u : UTxO),
-  UTxOinc (d_e ins u) u.
+  UTxOinc (ins </| u) u.
 Proof.
   intros ins u. intros io H.
   destruct u as (utxo0, ins_unique0); induction utxo0; prove_prop ins a H utxo0 IHutxo0 ins_unique0.
@@ -553,7 +563,7 @@ Proof.
 
 (* property 2 with dom *)
 Definition UTxO_prop_dom2 : forall (ins : Pow TxIn) (u : UTxO),
-  incl (dom (d_e ins u)) (dom u).
+  incl (dom (ins </| u)) (dom u).
 Proof.
   intros ins u. generalize (UTxO_prop2 ins u).
   unfold UTxOinc. unfold d_e. unfold dom. destruct u. simpl.
@@ -564,7 +574,7 @@ Admitted.
 
 (* property 3 *)
 Definition UTxO_prop3 : forall (u : UTxO) (outs : Pow TxOut),
-  UTxOinc (r_r u outs) u.
+  UTxOinc (u |> outs) u.
 Proof.
   intros u outs. intros io H.
   destruct u as (utxo0, ins_unique0); induction utxo0; prove_prop outs a H utxo0 IHutxo0 ins_unique0.
@@ -638,8 +648,8 @@ Qed.
 
 (* property 4 *)
 Definition UTxO_prop4 : forall (ins : Ins) (u v : UTxO) (pf :#iu ((# u)++(# v))),  
-  UTxOeq (d_r ins (unionUTxO u v pf)) (unionUTxO (d_r ins u) (d_r ins v) 
-    (@sub_utxo_nodup (d_r ins u) u (d_r ins v) v (UTxO_prop1 ins u) (UTxO_prop1 ins v) pf)).
+  UTxOeq (ins <| (unionUTxO u v pf)) (unionUTxO (ins <| u) (ins <|  v) 
+    (@sub_utxo_nodup (ins <| u) u (ins <| v) v (UTxO_prop1 ins u) (UTxO_prop1 ins v) pf)).
 Proof.
   intros ins u v pf; prove_eq_props1 u v; induction utxo0; 
   prove_eq_props2 a ins pf ins_unique0 H IHutxo0.
@@ -648,13 +658,13 @@ Qed.
 (*
 (* property 4 *)
 Definition UTxO_prop4 : forall (ins : Ins) (u v : UTxO) (pf :#iu ((# u)++(# v))),  
-  (d_r ins (unionUTxO u v pf)) = unionUTxO (d_r ins u) (d_r ins v) 
-    (@sub_utxo_nodup (d_r ins u) u (d_r ins v) v (UTxO_prop1 ins u) (UTxO_prop1 ins v) pf).
+  (ins <| (unionUTxO u v pf)) = unionUTxO (ins <| u) (ins <| v) 
+    (@sub_utxo_nodup (ins <| u) u (ins <| v) v (UTxO_prop1 ins u) (UTxO_prop1 ins v) pf).
   (*  (d_r_u_disj ins u v pf).*)
 Proof.
   intros ins u v pf. unfold unionUTxO. 
-  rewrite (pf_ir_utxo (d_r ins {| utxo := (# u) ++ (# v); ins_unique := pf |})
-({| utxo := (# (d_r ins u)) ++ (# (d_r ins v)); ins_unique := (sub_utxo_nodup (UTxO_prop1 ins u) (UTxO_prop1 ins v) pf) |})).
+  rewrite (pf_ir_utxo (ins <| {| utxo := (# u) ++ (# v); ins_unique := pf |})
+({| utxo := (# (ins <| u)) ++ (# (ins <| v)); ins_unique := (sub_utxo_nodup (UTxO_prop1 ins u) (UTxO_prop1 ins v) pf) |})).
 (*d_r_u_disj ins u v pf *)
   auto. simpl.
   destruct u; destruct v; simpl. induction utxo0. simpl.
@@ -670,8 +680,8 @@ Qed.*)
 
 (* property 5 *)
 Definition UTxO_prop5 : forall (ins : Ins) (u v : UTxO) (pf :#iu ((# u)++(# v))), 
-  UTxOeq (d_e ins (unionUTxO u v pf)) (unionUTxO (d_e ins u) (d_e ins v)
-(@sub_utxo_nodup (d_e ins u) u (d_e ins v) v (UTxO_prop2 ins u) (UTxO_prop2 ins v) pf)).
+  UTxOeq (ins </| (unionUTxO u v pf)) (unionUTxO (ins </| u) (ins </| v)
+(@sub_utxo_nodup (ins </| u) u (ins </| v) v (UTxO_prop2 ins u) (UTxO_prop2 ins v) pf)).
 Proof.
   intros ins u v pf; prove_eq_props1 u v; induction utxo0; 
   prove_eq_props2 a ins pf ins_unique0 H IHutxo0.
@@ -679,8 +689,8 @@ Qed.
 
 (*
 Definition UTxO_prop5_fm : forall ins u v
-  UTxOeq (d_e ins (unionUTxO u v pf)) (unionUTxO (d_e ins u) (d_e ins v)
-(@sub_utxo_nodup (d_e ins u) u (d_e ins v) v (UTxO_prop2 ins u) (UTxO_prop2 ins v) pf)).
+  UTxOeq (ins </| (unionUTxO u v pf)) (unionUTxO (ins </| u) (ins </| v)
+(@sub_utxo_nodup (ins </| u) u (ins v) v (UTxO_prop2 ins u) (UTxO_prop2 ins v) pf)).
 *)
 
 (*
@@ -699,13 +709,13 @@ Lemma a_in_both : forall a utxo ins,
   (d_r_fm (in_both decTxIn (fst a :: fst (split utxo)) ins) (a::utxo)) = 
    (a :: (d_r_fm ((in_both decTxIn (fst (split utxo)) ins)) utxo)).
 Proof.
-Admitted.
+Admitted. 
 
 (* these can mostly be proved with the Ltacs defined above - I will fill this in this week *)
 
 (* property 6 *)
 Definition UTxO_prop6 : forall (ins : Ins) (u : UTxO), 
-  UTxOeq (d_r (interIns (dom u) ins) u) (d_r ins u).
+  UTxOeq ((interIns (dom u) ins) <| u) (ins <| u).
 Proof.
   intros ins u. 
 Admitted.
@@ -713,35 +723,35 @@ Admitted.
 
 (* property 7 *)
 Definition UTxO_prop7 : forall (ins : Ins) (u v : UTxO), 
-  UTxOeq (d_e (interIns (dom u) ins) u) (d_e ins u).
+  UTxOeq ((interIns (dom u) ins) </| u) (ins </| u).
 Proof.
 Admitted.
 
 (* property 8 *)
 Definition UTxO_prop8 : forall (ins : Ins) (u v : UTxO) (pf :#iu ((# u)++(# v))), 
-  UTxOeq (d_e (unionIns (dom u) ins) (unionUTxO u v pf))  (d_e (unionIns (dom u) ins) v).
+  UTxOeq ((unionIns (dom u) ins) </| (unionUTxO u v pf))  ((unionIns (dom u) ins) </| v).
 Proof.
 Admitted.
 
 (* property 9 *)
 Definition UTxO_prop9 : forall (ins : Ins) (u : UTxO), 
-  UTxOeq (d_e ins u) (d_r (exclIns (dom u) ins) u).
+  UTxOeq (ins </| u) ((exclIns (dom u) ins) <| u).
 Proof.
 Admitted. 
 
-Lemma d_r_e_unique : forall u ins,#iu ((# (d_e ins u))++(# (d_r ins u))).
+Lemma d_r_e_unique : forall u ins,#iu ((# (ins </| u))++(# (ins <| u))).
 Proof.
 Admitted.
 
 (* property 10 added *)
 Definition UTxO_prop10 : forall (ins : Ins) (u : UTxO) , 
-  UTxOeq (unionUTxO (d_e ins u) (d_r ins u) (d_r_e_unique u ins)) u.
+  UTxOeq (unionUTxO (ins </| u) (ins <| u) (d_r_e_unique u ins)) u.
 Proof. 
 Admitted.
 
 (* property 11 added *)
 Definition UTxO_prop11 : forall (ins : Ins) (u : UTxO), 
-  UTxOeq (d_r (interIns (dom (d_e ins u)) (dom (d_r ins u))) u) emptyUTxO.
+  UTxOeq ((interIns (dom (ins </| u)) (dom (ins <| u))) <| u) emptyUTxO.
 Proof.
 Admitted.
 
@@ -782,7 +792,7 @@ Qed.
 
 
 (* prove makeUTxOforTx f.m. is well-defined *)
-Definition wd_makeUTxOforTx : forall tx (outs : IxTxOut), @ins_unique_f _ _ (makeUTxOforTx tx (# outs)).
+Definition wd_makeUTxOforTx : forall tx (outs : outputs), @ins_unique_f _ _ (makeUTxOforTx tx (# outs)).
 Proof.
   intros tx outs. destruct outs as (o_f, i_u). simpl.
   unfold makeUTxOforTx. unfold ins_unique_f. induction o_f.
@@ -863,7 +873,7 @@ Proof.
   auto.
 Qed.
 
-Lemma lemma162 :  forall u ins, balance (d_e ins u) = (balance u) - (balance (d_r ins u)).
+Lemma lemma162 :  forall u ins, balance (ins </| u) = (balance u) - (balance (ins <| u)).
 Proof.
 Admitted.
 
@@ -876,7 +886,7 @@ Definition empty_w : Wallet := (emptyUTxO, @nil Tx).
 
 (* AUXILIARY FUNCTIONS *)
 
-Definition available (w : Wallet) := d_e (txins (snd w)) (fst w).
+Definition available (w : Wallet) := (txins (snd w)) </| (fst w).
 
 
 Definition change (pending : Pending) (txouts_unique : ins_unique_f (txouts_calc pending)) := 
@@ -888,11 +898,11 @@ Definition total (w : Wallet) (txouts_unique : ins_unique_f (txouts_calc (snd w)
 
 
 Definition new (b : Block) (u : UTxO) (txouts_unique : ins_unique_f (txouts_calc b)) : UTxO 
-  := d_e (txins b) (r_r_ours (txouts b txouts_unique)).
+  := (txins b) </| (r_r_ours (txouts b txouts_unique)).
 
 (* need to assume utxo and (r_r ...) are disjoint? *)
 Definition updateUTxO (b: Block) (u: UTxO) (txouts_unique : ins_unique_f (txouts_calc b)) pf := 
-  d_e (txins b) (unionUTxO u (r_r_ours (txouts b txouts_unique)) pf).
+  (txins b) </| (unionUTxO u (r_r_ours (txouts b txouts_unique)) pf).
 
 Definition empty_inter (l1 l2 : Ins) : bool :=
   match interIns l1 l2 with
@@ -910,10 +920,10 @@ Definition ins_tx (tx : Tx) :=
   end.
 
 Fixpoint updatePending (b : Block) (pending : Pending) : Pending :=
-  match b with
+  match pending with
   | nil => nil
   | tx :: l => if (in_dec decTx tx pending) then (if (empty_inter (ins_tx tx) (txins b))
-    then tx :: (updatePending l pending) else (updatePending l pending)) else (updatePending l pending)
+    then tx :: (updatePending b l) else (updatePending b l)) else (updatePending b l)
   end.
 
 
@@ -952,11 +962,13 @@ Definition totalBalance (w : Wallet) pf t_u := balance (total w pf t_u).
 Lemma lemma33 : forall b pending t, In t (updatePending b pending) -> In t pending.
 Proof.
   intros b pending t in_t. unfold updatePending in in_t.
-  induction b. inversion in_t.
-  destruct (in_dec decTx a pending);
-  destruct ( empty_inter (ins_tx a) (txins (a :: b)));
-  try (inversion in_t as [H1 | H2]); try (rewrite <- H1; auto); 
-  try (apply IHb; auto).
+  induction pending. inversion in_t.
+  destruct (in_dec decTx a (a :: pending));
+  destruct (empty_inter (ins_tx a) (txins b));
+  simpl in in_t; simpl;
+  try (inversion in_t as [H11 | H21]); try (rewrite <- H11; auto);
+  try (generalize (IHpending H21); tauto);
+  try (generalize (IHpending in_t); tauto). 
 Qed. 
 
 
@@ -1024,7 +1036,7 @@ Proof.
   unfold applyBlock; unfold updateUTxO; unfold updatePending;
   unfold applyBlock in H; unfold updateUTxO in H; unfold updatePending in H.
   simpl in H.
-  induction b. unfold txins in H. inversion H.
+  induction b. unfold txins in H.
 Admitted.
 
 (* working on this *)
@@ -1077,289 +1089,3 @@ Lemma lemma392 : forall w (at_up : atomic_updates_rel w)
   (t_u : ins_unique_f (txouts_calc (snd w))) pf, 
   balance (change (snd w) t_u) + (balance (available w)) = balance (total w t_u pf).
 Admitted.
-
-(* never mind this stuff below *)
-
-Lemma in_34 : forall t a b (w:Wallet) pf pf1, In t (dom (d_e (txins b) (unionUTxO (fst w) (r_r_ours (txouts b)) pf))) ->
-In t (dom (d_e (txins (a :: b)) (unionUTxO (fst w) (r_r_ours (txouts (a :: b))) pf1))).
-Proof.
-  intros t a b w pf pf1 H. generalize UTxO_prop5.
-  unfold UTxOeq. unfold UTxOinc. intros p5.
-  unfold dom. eapply in_split. intros.
-  apply p5. exact H0. generalize UTxO_prop12.
-  unfold dom. intro u12. rewrite <- u12.
-  unfold unionIns.
-  unfold unionUTxO. apply in_dist.
-  unfold unionUTxO in H.
-  unfold dom in H. simpl in H. 
-  assert (H0 : In t (fst (split (# (d_e (txins (b)) (r_r_ours (txouts (b))))))) \/
-    In t (fst (split (# (d_e (txins (b)) (fst w)))))).
-  Focus 2. inversion H0 as [H00 | H01].
-  apply or_introl.
-  unfold txouts. 
-  destruct a as (li, lo). simpl. rewrite r_r_ours_dist.
-  eapply in_split; try (exact H00); intros ab Hw.
-  unfold d_e in p5. simpl in p5. 
-  generalize (p5 (li++(txins b))) ()(r_r_ours (txouts b))). eapply p5.
-  
-In ab
-  (d_e_fm
-     (li ++ (fix txins (txs : Pow Tx) : Ins := match txs with
-                                     | nil => nil
-                                     | MkTx l _ :: xs => l ++ txins xs
-                                     end) b)
-     (r_r_ours_fm (makeUTxOforTx (MkTx li lo) lo) ++ r_r_ours_fm (txouts_calc b)))
- p5.
-  apply p5.
-  induction li. unfold makeUTxOforTx. simpl.
-  assert 
-  unfold unionIns in u12. rewrite <- u12 in H.
-   rewrite in_dist.
-
-(* Invariant 3.4 *)
-Lemma pending_in_dom : forall w (at_up : atomic_updates_rel w), forall t, 
-  In t (txins (snd w)) -> In t (dom (fst w)).
-Proof.
-  intros w ar t. intro H.
-  induction ar; simpl; auto;
-
-  unfold applyBlock; unfold updateUTxO; unfold updatePending;
-  unfold applyBlock in H; unfold updateUTxO in H; unfold updatePending in H.
-  simpl in H.
-  induction b. unfold txins in H. inversion H.
-
-  unfold txouts. unfold r_r_ours. simpl.
-  unfold unionUTxO. unfold d_e. unfold dom. simpl.
-  destruct a as (l,ls).
-  unfold dom in IHb. simpl in IHb.
-  rewrite r_r_ours_dist.
-  eapply in_split. 
-
-replace (d_e_fm (l ++ txins b) ((# (fst w)) ++ r_r_ours_fm (makeUTxOforTx (MkTx l ls) ls) ++ r_r_ours_fm (txouts_calc b))) with 
-  ((d_e_fm (l ++ txins b) (# (fst w))) ++
-    (d_e_fm (l ++ txins b) (r_r_ours_fm (makeUTxOforTx (MkTx l ls) ls) ++ r_r_ours_fm (txouts_calc b)))).
-
-
-generalize UTxO_prop5.
-  unfold UTxOeq; unfold d_e. unfold unionUTxO;
-  unfold UTxOinc. simpl. 
-  
- intros ab Hab.
-Check in_split.
-  eapply in_split.
-  unfold r_r_ours_fm. unfold makeUTxOforTx.
-  
-  rewrite app_nil_r. unfold 
-  destruct (in_dec decTx tx pending).
-
-Focus 2.
-  destruct w as (utxo, pending). simpl. simpl in H.
-  induction pending. unfold available in precond. unfold ins_tx in precond.
-  simpl in precond. destruct tx as (txi, txo). rewrite app_nil_r in H.
-  rewrite d_e_nil in precond. unfold dom in precond.
-  apply precond. auto.
-  apply IHpending; auto. intros i ini.
-  unfold available in precond. destruct a as (ai,ao).
-  simpl in precond. induction ai.
-  rewrite app_nil_l in precond.
-  exact (precond i ini).
-  apply IHai. destruct utxo.
-  unfold d_e in precond. unfold dom in precond.
-  simpl in precond.
-
-Focus 2.
-  
-  unfold available. simpl.
-
-induction w.
-
-
-induction b; unfold updatePending. simpl.
-  tauto.
-
-  unfold applyBlock in H. simpl in H. destruct (in_dec decTx a (snd w)).
-
-Focus 2. unfold updatePending in H.
-  destruct (empty_inter (ins_tx a)). ; auto.
-
-Focus 3.
- 
-  destruct a as (ai, ao).
-
-
-Focus 3. simpl. destruct a as (i, o). destruct w as (u, p).
-  simpl. unfold updatePending in H. 
-  destruct (empty_inter (ins_tx tx) (txins b)).
-  simpl in H. simpl in precond. simpl in pf. 
-  simpl in IHb. simpl in n. clear IHar. 
-
-nfold txouts_calc. simpl.
-
-apply IHar. unfold newPending in H. simpl in H.
-  destruct tx as (i,o). simpl in H.
-  destruct (in_app_or i _ _ H) as [H1 | H2]; auto.
-  unfold available in precond. unfold dom in precond.
-  simpl in precond. generalize (precond t H1).
-  destruct w as (u,p). simpl. intro Hde. 
-  generalize (UTxO_prop_dom2 (txins p) u).
-  unfold incl. unfold txins. simpl.
-  intros Hinc Hpu. 
-  apply (Hinc t Hpu).
-   destruct tx as (i,o). simpl. simpl in H.
-  destruct (in_app_or i _ _ H) as [H1 | H2]; intro Hit.
-  generalize (UTxO_prop2_dom (txins (snd w)) (fst w)).
-  unfold UTxOinc; unfold d_e. simpl. intro.
-  unfold updatePending in H. simpl in precond.   
-
-  unfold txouts_calc. unfold d_e_fm. simpl.
-  generalize (#_eq_fst_sp t).
-rewrite (#_eq_fst_sp t).
-  
- unfold txins. simpl.
-  Check ( (MkTx ai ao :: b)).
-simpl.
-
-  rewrite (#_eq_fst_sp t (d_e_fm (txins (MkTx ai ao :: b))
-           (fst _ ++ r_r_ours_fm (txouts_calc (MkTx ai ao :: b))))).
-
-simpl. unfold makeUTxOforTx. simpl.
-
-
-
-  
-  unfold d_e in precond. unfold d_e_fm in precond. 
-  unfold dom in precond. simpl in precond. apply precond.
-  generalize (precond t H). inversion H.
-
-destruct (empty_inter (ins_tx a) match a with
-                                | MkTx l _ => l ++ txins b
-                                end).
-  intros H. simpl.
-  destruct w as (utxo, pending). unfold txins. simpl.
-
-(* Lemma 3.2 *)
-Lemma update_to_new : forall blockchain_u u b pf, UTxOeq (d_e (dom u) (updateUTxO blockchain_u b u pf)) (new blockchain_u b u).
-Proof.
-Admitted.
-
-(* 
-Definition unionUTxO (available w) (change (snd w))
-
-(* subtraction lemma *)
-Lemma subt_comp (a b c:nat) : (a + b = c -> a = c - b).
-Proof.
-  Admitted.
-(*
-  induction b.
-(* case 0 *) replace (a+0) with a. 
-  replace (c-0) with c. tauto. compute.
-*)
-
-Variable balance : UTxO -> Coin.
-
-
-(* compute the sum of all coin values in a well-defined UTxO *)
-Fixpoint sum_fm (f : UTxO) (f_wd : wd TxIn TxOut f) : nat :=
-  match f_wd with
-  | wd0 _ _ => 0
-  | wd_new _ _ _ b f' wdf' _ => (snd b) + (sum_fm f' wdf')
-  end.
-
-(* define balance calculation for a UTxO presented as a list *)
-Fixpoint coin_sum (utxo_list : list (TxIn*TxOut)) : Coin :=
-  match utxo_list with 
-  | nil => 0
-  | u :: l => (snd (snd u)) + (coin_sum l)
-  end.
-
-Lemma sum_proof_ir : forall utxo f_wd f_wd', sum_fm utxo f_wd = sum_fm utxo f_wd'.
-Proof.
-  intros utxo f_wd f_wd'. 
-  unfold sum_fm. induction f_wd. replace f_wd' with (wd0 TxIn TxOut). 
-  auto. destruct f_wd'.
-  compute in f_wd'. 
-  assert (wd TxIn TxOut (null_fm TxIn TxOut)). exact (wd0 TxIn TxOut).
-
- induction f_wd'. auto. compute.
-
- (wd TxIn TxOut utxo).
-
-
-(* any balance calculation for a utxo satisfying the balance_calc invariant property must coincide
-  with the coin_sum balace calculation of this utxo presented as a list *)
-Lemma coin_sum_balance :
-  forall (utxo : UTxO) (l : list (TxIn*TxOut)) (f_wd : wd TxIn TxOut utxo), (forall t, utxo t <-> In t l) -> 
-    coin_sum l = (sum_fm utxo f_wd).
-Proof.
-  intros utxo l f_wd H. induction l; simpl; simpl in H.  
-(* empty wallet *) 
-  unfold sum_fm. generalize f_wd. replace utxo with (null_fm TxIn TxOut).
-  intro f_wd0. replace f_wd0 with (wd0 TxIn TxOut). auto.
-  apply proof_irrelevance. 
-  unfold wd.
-  Check (wd0 _ _). 
-  compute.
-  unfold sum_fm. simpl. compute.
-  auto. apply functional_extensionality.
-  intro x. symmetry. apply prf_prop_ex. exact (H x).
-(* a :: l wallet *)
-  symmetry. apply balance_with_a. apply H. tauto.
-Qed.
-
-(* dependence *)
-Definition depends (t2 t1 : Tx) :=  
-  exists ix, (txins (fun t => t=t2)) (txid t1, ix).
-
-(* set of independent transactions *)
-Definition independednt (txs : Pow Tx) :=
-  andPP' _ (txins txs) (dom (txouts txs)) = (fun t => False).
-
-
-(* use property 2.6.1 as the invariant property defining balance *) 
-Variable balance_calc :  (balance (fun u => False) = 0) /\
-  (forall u v, (andPP' TxIn (dom u) (dom v) = (fun _ : TxIn => False) ->
-  balance (orPP' (TxIn * TxOut) u v) = balance u + balance v)).
-
-
-(* property 2.6.2 *)
-Definition balance_prop2 (u : UTxO) (ins : Pow TxIn) :
-  balance (d_e ins u) = (balance u) -(balance (d_r ins u)).
-Proof.
-  destruct balance_calc as [b0 b_c]. generalize (b_c (d_e ins u) (d_r ins u)).
-  simpl. intro. apply subt_comp. rewrite <- H. 
-  rewrite UTxO_prop10. auto.
-  apply UTxO_prop11.
-Qed.
-
-(* UPDATING THE UTXO *)
-
-(* assume the set of our addresses is constant *)
-Variable ours : OurAddr.
-
-(* add new outputs of a block to the UTxO *)
-Definition new (b : Block) :=
-  d_e (txins b) (r_r (txouts b) (OurOuts ours)).
-  
-(* update utxo to add new outputs of block b *)
-Definition updateUTxO (b : Block) (utxo : UTxO) : UTxO :=
-  d_e (txins b) (orPP' _ utxo (r_r (txouts b) (OurOuts ours))).
-
-
-Lemma lemma32 : forall (b : Block) (u : UTxO),
-  new b = d_e (dom u) (updateUTxO b u).
-Proof.
-  intros. unfold new. unfold updateUTxO. 
-  unfold txins. unfold txouts. unfold OurOuts. 
-  prove_prop. split; intros; split; try split; try split;
-  try tauto. intro He.
-  destruct H as [[[H0 H1] H1'] H2].
-
-  Focus 2. destruct H as [[[H0 | H1] H1'] H2].
-  destruct H2. exists (snd x). destruct x as [(x1,x2)]. simpl. auto.
-  destruct H1'. destruct H1 as [[H01 H10] H02]. eexists. eexists. apply H01.
-  destruct x as [(x1,x2)].
-d exact H01.
-exists (snd x). destruct x as [(x1,x2)]. simpl. auto.
-
- try tauto.
-  split
